@@ -39,12 +39,6 @@ static GLFWwindow* s_window = NULL;
 /** Frissítések közötti minimális idő. */
 static double s_updateDeltaTime = 1.0 / 60.0;
 
-struct VertexData
-{
-	glm::vec3 m_position;
-	glm::vec2 m_uv;
-};
-
 extern Mesh s_mesh;
 
 static GLuint s_program = 0;
@@ -101,7 +95,12 @@ void initScene()
 
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
-		cout << s_mesh.halfEdge[h].pair << " " << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << endl;
+		cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << s_mesh.halfEdge[h].pair << " ";
+		if (s_mesh.halfEdge[h].pair != NULL)
+		{
+			cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
+		}
+		cout << endl;
 	}
 
 	//for (int i = 0; i < s_mesh.indices.size(); i++)
@@ -151,7 +150,7 @@ void cleanUpScene()
 
 void renderScene()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -169,7 +168,7 @@ void renderScene()
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
 		glBindVertexArray(s_mesh.vao);
-		glPointSize(6);
+		glPointSize(10);
 		glDrawElements(GL_TRIANGLES, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
 
@@ -190,6 +189,7 @@ void renderScene()
 		/** Kirajzoljuk indexelve a kockát. */
 		glLineWidth(4);
 		glDrawElements(GL_POINTS, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+		//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
 	}
 
 	glBindVertexArray(0);
@@ -198,7 +198,7 @@ void renderScene()
 void updateScene(double delta)
 {
 	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	trans = glm::rotate(trans, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	s_models[0] = s_models[0] * trans;
 
 	/** Escape billentyű. */
@@ -232,8 +232,23 @@ void updateScene(double delta)
 	{
 		if (!isKeyPressed) {
 			subdivide();
-			cout << "done" << endl;
+			
 			s_mesh.loadSubdivData();
+			for (int i = 0; i < s_mesh.indices.size(); i++)
+			{
+				//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
+				//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
+				//cout << "=============================================" << endl;
+				cout << s_mesh.indices[i] << endl;
+			}
+			for (int i = 0; i < s_mesh.vertices.size(); i++)
+			{
+				cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
+				//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
+				//cout << "=============================================" << endl;
+				//cout << s_mesh.indices[i] << endl;
+			}
+			cout << s_mesh.indices.size() << endl;
 
 			glBindBuffer(GL_ARRAY_BUFFER, s_mesh.vbo);
 			glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);

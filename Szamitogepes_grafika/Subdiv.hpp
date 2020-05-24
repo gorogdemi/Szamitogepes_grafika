@@ -75,6 +75,7 @@ struct Mesh {
 			verticesSubdiv[faces[i].vertices[1]].normal = normal;
 			verticesSubdiv[faces[i].vertices[2]].normal = normal;
 		}
+		cout << indices.size() << "indexméret" << endl;
 		vertices.clear();
 		for (int i = 0; i < verticesSubdiv.size(); i++)
 		{

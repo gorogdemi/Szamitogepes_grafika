@@ -7,7 +7,10 @@ Mesh s_mesh;
 Mesh loadMesh(string fileName)
 {
 	Mesh mesh;
-
+	mesh.vertices.reserve(2000);
+	mesh.verticesSubdiv.reserve(2000);
+	mesh.faces.reserve(2000);
+	mesh.halfEdge.reserve(2000);
 	ifstream be(fileName);
 	string x;
 
@@ -71,7 +74,10 @@ Mesh loadMesh(string fileName)
 		face.vertices[1] = mesh.indices[i + 1];
 		face.vertices[2] = mesh.indices[i + 2];
 		mesh.faces.push_back(face);
+		cout << face.vertices[0] << " " << face.vertices[1] << " " << face.vertices[2] << endl;
 	}
+
+	mesh.halfEdge.reserve(mesh.faces.size()*3);
 
 	for (int i = 0; i < mesh.faces.size(); i++)
 	{
@@ -110,7 +116,7 @@ Mesh loadMesh(string fileName)
 
 		if (pair != mesh.halfEdge.end())
 		{
-			halfEdge.pair = addressof(*pair);
+			halfEdge.pair = &(*pair);
 		}
 
 		mesh.halfEdge.push_back(halfEdge);
@@ -196,27 +202,30 @@ void subdivide()
 	//	vector<int> EM(H);
 	//	vector<Mesh::HalfEdge> NE(3 * 4 * F);
 	//	vector<Mesh::Face> NF{ 4 * F };
-
-	vector<Mesh::VertexSubdiv> newVertices = s_mesh.verticesSubdiv;
+	
+	vector<Mesh::VertexSubdiv> newVertices;
+	newVertices = s_mesh.verticesSubdiv;
+	
 	vector<Mesh::HalfEdge> newEdges;
+	newEdges.reserve(2000);
+	
 	vector<Mesh::Face> newFaces;
 
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
 		if (!s_mesh.halfEdge[h].used)
 		{
-			cout << s_mesh.halfEdge[h].pair << " " << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << endl;
-			//s_mesh.halfEdge[h].vertex->position+s_mesh.halfEdge[h].pair->vertex->position;
-			/*s_mesh.halfEdge[h].next->vertex->position;
-			s_mesh.halfEdge[h].pair->next->vertex->position;*/
-			//glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
-			//newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),NULL});
-			//s_mesh.halfEdge[h].used = true;
-			//s_mesh.halfEdge[h].pair->used = true;
+			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
+			
+			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),NULL});
+			cout << &s_mesh.halfEdge[h] << " ";
+			s_mesh.halfEdge[h].pair->vertex = &newVertices[newVertices.size() - 1];
+			cout << &s_mesh.halfEdge[h] << endl;
+			s_mesh.halfEdge[h].used = true;
+			s_mesh.halfEdge[h].pair->used = true;
 		}
 	}
 
-	cout << "done" << endl; cout << "done" << endl; cout << "done" << endl; cout << "done" << endl;
 
 	/*for (int i = 0; i < s_mesh.verticesSubdiv.size(); i++)
 	{
@@ -239,7 +248,19 @@ void subdivide()
 
 		newVertices[i] = Mesh::VertexSubdiv{ (1 - n * alpha) * s_mesh.verticesSubdiv[i].position + alpha * sum,glm::vec3(0,0,0),NULL };
 	}
-
+	*/
+	newFaces.clear();
+	newFaces.reserve(200);
+	cout << endl;
+	for (int i = 0; i < newVertices.size(); i++)
+	{
+		cout << &newVertices[i] << endl;
+	}
+	cout << endl;
+	for (int i = 0; i < s_mesh.vertices.size(); i++)
+	{
+		cout << &s_mesh.vertices[i] << endl;
+	}
 	for (int i = 0; i < s_mesh.faces.size(); i++)
 	{
 		Mesh::Face face;
@@ -249,6 +270,12 @@ void subdivide()
 		Mesh::VertexSubdiv* j0 = v0->edge->vertex;
 		Mesh::VertexSubdiv* j1 = v1->edge->vertex;
 		Mesh::VertexSubdiv* j2 = v2->edge->vertex;
+		cout << j0 << " " << j1 << " " << j2 << endl;
+		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
+		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
+		
+		newFaces.push_back(face);
 
 		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0));
 		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
@@ -267,14 +294,8 @@ void subdivide()
 		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
 
 		newFaces.push_back(face);
-
-		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
-		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
-
-		newFaces.push_back(face);
 	}
-
+	/*
 	for (int i = 0; i < newFaces.size(); i++)
 	{
 		Mesh::HalfEdge halfEdge;
@@ -305,7 +326,7 @@ void subdivide()
 		halfEdge2find.v2 = newFaces[i].vertices[0];
 		halfEdge2find.pair = NULL;
 
-		 pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
+		pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
 		if (pair != newEdges.end())
 		{
 			halfEdge.pair = &(*pair);
@@ -322,7 +343,7 @@ void subdivide()
 		halfEdge2find.v2 = newFaces[i].vertices[0];
 		halfEdge2find.pair = NULL;
 
-		 pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
+		pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
 		if (pair != newEdges.end())
 		{
 			halfEdge.pair = &(*pair);
