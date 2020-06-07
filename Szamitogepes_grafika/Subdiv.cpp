@@ -165,6 +165,11 @@ Mesh loadMesh(string fileName)
 		mesh.faces[i].edge = &mesh.halfEdge[mesh.halfEdge.size() - 3];
 	}
 
+	for (int i = 0; i < mesh.verticesSubdiv.size(); i++)
+	{
+		cout << mesh.verticesSubdiv[i].edge->vertex << endl;
+	}
+
 	glGenBuffers(1, &mesh.vbo);
 	glGenBuffers(1, &mesh.ibo);
 	glGenVertexArrays(1, &mesh.vao);
@@ -205,7 +210,7 @@ void subdivide()
 	
 	vector<Mesh::VertexSubdiv> newVertices;
 	newVertices = s_mesh.verticesSubdiv;
-	
+	newVertices.reserve(300);
 	vector<Mesh::HalfEdge> newEdges;
 	newEdges.reserve(2000);
 	
@@ -215,12 +220,12 @@ void subdivide()
 	{
 		if (!s_mesh.halfEdge[h].used)
 		{
-			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
+			//glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
+			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position))/2.0f;
+			//glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].next->vertex->position));
+			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),s_mesh.halfEdge[h].pair });
 			
-			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),NULL});
-			cout << &s_mesh.halfEdge[h] << " ";
 			s_mesh.halfEdge[h].pair->vertex = &newVertices[newVertices.size() - 1];
-			cout << &s_mesh.halfEdge[h] << endl;
 			s_mesh.halfEdge[h].used = true;
 			s_mesh.halfEdge[h].pair->used = true;
 		}
@@ -254,14 +259,16 @@ void subdivide()
 	cout << endl;
 	for (int i = 0; i < newVertices.size(); i++)
 	{
-		cout << &newVertices[i] << endl;
+		cout << newVertices[i].edge<< endl;
+		cout << newVertices[i].position.x << " " << newVertices[i].position.y << " " << newVertices[i].position.z << endl;
 	}
 	cout << endl;
 	for (int i = 0; i < s_mesh.vertices.size(); i++)
 	{
 		cout << &s_mesh.vertices[i] << endl;
 	}
-	for (int i = 0; i < s_mesh.faces.size(); i++)
+	cout << "faceképzés" << endl;
+	for (int i = 0; i < 1; i++)
 	{
 		Mesh::Face face;
 		Mesh::VertexSubdiv* v0 = &newVertices[s_mesh.faces[i].vertices[0]];
@@ -270,30 +277,32 @@ void subdivide()
 		Mesh::VertexSubdiv* j0 = v0->edge->vertex;
 		Mesh::VertexSubdiv* j1 = v1->edge->vertex;
 		Mesh::VertexSubdiv* j2 = v2->edge->vertex;
-		cout << j0 << " " << j1 << " " << j2 << endl;
+		cout << j0->position.x << " " << j0->position.y << " " << j0->position.z << endl;
+		cout << s_mesh.faces[i].vertices[0] << " " << s_mesh.faces[i].vertices[1] << " " << s_mesh.faces[i].vertices[2] << endl;
+		//cout << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0)) << " " << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1)) << " " << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2)) << endl;
 		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
 		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
 		
 		newFaces.push_back(face);
+		//cout << "megy" << endl;
+		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0));
+		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
+		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
 
-		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0));
-		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
+		//newFaces.push_back(face);
 
-		newFaces.push_back(face);
+		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1));
+		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
 
-		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1));
-		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
+		//newFaces.push_back(face);
 
-		newFaces.push_back(face);
+		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2));
+		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
+		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
 
-		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2));
-		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-
-		newFaces.push_back(face);
+		//newFaces.push_back(face);
 	}
 	/*
 	for (int i = 0; i < newFaces.size(); i++)

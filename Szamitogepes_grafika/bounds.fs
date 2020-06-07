@@ -8,5 +8,5 @@ layout(location = 1) uniform vec3 vBoundsColor;
 void main()
 {
     /** Kiírjuk a határoló színét. */
-    outColor = vec4(vBoundsColor, 1);
+    outColor = vec4(vBoundsColor, 0.5);
 }

@@ -54,6 +54,8 @@ static GLfloat s_moveSpeed = 2.0f, s_turnSpeed = glm::radians(3.0f);
 
 static double s_mouseX = -1.0, s_mouseY = -1.0;
 
+GLuint vbo, ibo, vao;
+
 //=====================================================================================================================
 
 void computeCameraMatrices()
@@ -123,6 +125,31 @@ void initScene()
 
 	//cout << "=======" << endl;
 	//cout << s_mesh.verticesSubdiv.size() << endl;
+
+	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ibo);
+	glGenVertexArrays(1, &vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_mesh.indices.size() * sizeof(GLuint), s_mesh.indices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	/** Konfiguráljuk a VAO-t. */
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBindVertexArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void cleanUpScene()
@@ -150,10 +177,56 @@ void cleanUpScene()
 
 void renderScene()
 {
+	//cout << s_mesh.indices.size() << " " ;
 	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//BASE
+
+	glUseProgram(s_program);
+
+	for (size_t i = 0; i < s_models.size(); ++i)
+	{
+		UniformDataModel modelData;
+		modelData.m_modelView = s_view * s_models[i]*glm::scale(glm::vec3(0.99, 0.99, 0.99));
+		modelData.m_view = s_view;
+		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+		modelData.m_mvp = s_projection * modelData.m_modelView;
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+
+		glBindVertexArray(vao);
+		glPointSize(10);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+	}
+
+	glBindVertexArray(0);
+	glUseProgram(boundingbox);
+
+	glBindVertexArray(vao);
+
+	/** Kirajzoljuk a határolókat. */
+	for (size_t i = 0; i < s_models.size(); ++i)
+	{
+		/** Feltöltjük a uniformokat mátrixot. */
+		glm::mat4 mvp = s_projection * s_view * s_models[i] * glm::scale(glm::vec3(0.99, 0.99, 0.99));
+		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
+
+		/** Kirajzoljuk indexelve a kockát. */
+		glLineWidth(4);
+		glDrawElements(GL_POINTS, 12, GL_UNSIGNED_INT, nullptr);
+		//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
+	}
+
+	glBindVertexArray(0);
+
+
+	//MODELL
 
 	glUseProgram(s_program);
 
@@ -182,7 +255,7 @@ void renderScene()
 	{
 		/** Feltöltjük a uniformokat mátrixot. */
 		glm::mat4 mvp = s_projection * s_view * s_models[i];
-		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec3 boundsColor = glm::vec3(0.0f, 0.0f, 1.0f);
 		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
@@ -193,6 +266,8 @@ void renderScene()
 	}
 
 	glBindVertexArray(0);
+
+	
 }
 
 void updateScene(double delta)
@@ -234,21 +309,22 @@ void updateScene(double delta)
 			subdivide();
 			
 			s_mesh.loadSubdivData();
-			for (int i = 0; i < s_mesh.indices.size(); i++)
-			{
-				//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
-				//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
-				//cout << "=============================================" << endl;
-				cout << s_mesh.indices[i] << endl;
-			}
-			for (int i = 0; i < s_mesh.vertices.size(); i++)
-			{
-				cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
-				//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
-				//cout << "=============================================" << endl;
-				//cout << s_mesh.indices[i] << endl;
-			}
-			cout << s_mesh.indices.size() << endl;
+			cout << "megy" << endl;
+			//for (int i = 0; i < s_mesh.indices.size(); i++)
+			//{
+			//	//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
+			//	//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
+			//	//cout << "=============================================" << endl;
+			//	cout << s_mesh.indices[i] << endl;
+			//}
+			//for (int i = 0; i < s_mesh.vertices.size(); i++)
+			//{
+			//	cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
+			//	//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
+			//	//cout << "=============================================" << endl;
+			//	//cout << s_mesh.indices[i] << endl;
+			//}
+			//cout << s_mesh.indices.size() << endl;
 
 			glBindBuffer(GL_ARRAY_BUFFER, s_mesh.vbo);
 			glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);
