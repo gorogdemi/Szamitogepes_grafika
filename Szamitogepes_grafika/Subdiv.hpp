@@ -64,21 +64,20 @@ struct Mesh {
 
 	void loadSubdivData()
 	{
-		cout << faces.size() << " " << verticesSubdiv.size() << endl;
 		indices.clear();
 		for (int i = 0; i < faces.size(); i++)
 		{
 			indices.push_back(faces[i].vertices[0]);
 			indices.push_back(faces[i].vertices[1]);
 			indices.push_back(faces[i].vertices[2]);
-			cout << faces[i].vertices[0] << endl;
+
 			glm::vec3 normal = glm::normalize(glm::cross(verticesSubdiv[faces[i].vertices[0]].position - verticesSubdiv[faces[i].vertices[1]].position, verticesSubdiv[faces[i].vertices[0]].position - verticesSubdiv[faces[i].vertices[2]].position));
-			cout << "megy" << endl;
+
 			verticesSubdiv[faces[i].vertices[0]].normal = normal;
 			verticesSubdiv[faces[i].vertices[1]].normal = normal;
 			verticesSubdiv[faces[i].vertices[2]].normal = normal;
 		}
-		cout << "megy" << endl;
+
 		vertices.clear();
 		for (int i = 0; i < verticesSubdiv.size(); i++)
 		{

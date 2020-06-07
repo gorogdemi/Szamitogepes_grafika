@@ -94,16 +94,16 @@ void initScene()
 	}
 
 	glGenBuffers(1, &s_uboModel);
-
-	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
-	{
-		cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << s_mesh.halfEdge[h].pair << " ";
-		if (s_mesh.halfEdge[h].pair != NULL)
-		{
-			cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
-		}
-		cout << endl;
-	}
+	//cout << "smesh halfedgek" << endl;
+	//for (int h = 0; h < s_mesh.halfEdge.size(); h++)
+	//{
+	//	cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h].face << " " << s_mesh.halfEdge[h].pair->face << " ";
+	//	if (s_mesh.halfEdge[h].pair != NULL)
+	//	{
+	//		cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
+	//	}
+	//	cout << endl;
+	//}
 
 	//for (int i = 0; i < s_mesh.indices.size(); i++)
 	//{
@@ -200,7 +200,7 @@ void renderScene()
 
 		glBindVertexArray(vao);
 		glPointSize(10);
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+		//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
 	}
 
 	glBindVertexArray(0);
@@ -309,7 +309,6 @@ void updateScene(double delta)
 			subdivide();
 			
 			s_mesh.loadSubdivData();
-			cout << "megy" << endl;
 			//for (int i = 0; i < s_mesh.indices.size(); i++)
 			//{
 			//	//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
@@ -347,7 +346,6 @@ void updateScene(double delta)
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			cout << s_mesh.vertices.size() << endl;
 		}
 
 		isKeyPressed = true;

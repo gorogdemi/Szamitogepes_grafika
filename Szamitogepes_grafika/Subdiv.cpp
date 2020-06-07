@@ -167,7 +167,13 @@ Mesh loadMesh(string fileName)
 
 	for (int i = 0; i < mesh.verticesSubdiv.size(); i++)
 	{
-		cout << mesh.verticesSubdiv[i].edge->vertex << endl;
+		cout << &mesh.verticesSubdiv[i] << endl;
+	}
+
+	for (int i = 0; i < mesh.halfEdge.size(); i++)
+	{
+		cout << mesh.halfEdge[i].face << " " << mesh.halfEdge[i].pair->face 
+		<< " " << mesh.halfEdge[i].v1 <<"-" <<mesh.halfEdge[i].v2 <<" " << mesh.halfEdge[i].pair->v1 << "-" << mesh.halfEdge[i].pair->v2 << " " << mesh.halfEdge[i].vertex <<" --- " << mesh.halfEdge[i].pair->vertex << endl;
 	}
 
 	glGenBuffers(1, &mesh.vbo);
@@ -220,91 +226,59 @@ void subdivide()
 	{
 		if (!s_mesh.halfEdge[h].used)
 		{
-			//glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
-			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position))/2.0f;
-			//glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].next->vertex->position));
-			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),s_mesh.halfEdge[h].pair });
-			
+			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
+			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),NULL });
 			s_mesh.halfEdge[h].pair->vertex = &newVertices[newVertices.size() - 1];
+			s_mesh.halfEdge[h].vertex= &newVertices[newVertices.size() - 1];
 			s_mesh.halfEdge[h].used = true;
 			s_mesh.halfEdge[h].pair->used = true;
 		}
 	}
 
-
-	/*for (int i = 0; i < s_mesh.verticesSubdiv.size(); i++)
-	{
-		Mesh::HalfEdge* edge = newVertices[i].edge->next;
-		glm::vec3 sum(0, 0, 0);
-
-		int n = 0;
-		do {
-			// végezzünk valamilyen műveletet az edge->vertex csúccsal
-			sum+=edge->vertex->position;
-			n++;
-			edge = edge->pair->next;
-		}
-		while (edge->pair != newVertices[i].edge);
-
-		float beta = pow((3.0f / 8.0f + cos(2 * glm::pi<float>() / n) / 4.0f), 2);
-		float alpha = (5.0f / 8.0f - beta) / n;
-
-		newVertices[i].position = glm::vec3(0, 0, 0);
-
-		newVertices[i] = Mesh::VertexSubdiv{ (1 - n * alpha) * s_mesh.verticesSubdiv[i].position + alpha * sum,glm::vec3(0,0,0),NULL };
-	}
-	*/
 	newFaces.clear();
 	newFaces.reserve(200);
-	cout << endl;
-	for (int i = 0; i < newVertices.size(); i++)
-	{
-		cout << newVertices[i].edge<< endl;
-		cout << newVertices[i].position.x << " " << newVertices[i].position.y << " " << newVertices[i].position.z << endl;
-	}
-	cout << endl;
-	for (int i = 0; i < s_mesh.vertices.size(); i++)
-	{
-		cout << &s_mesh.vertices[i] << endl;
-	}
-	cout << "faceképzés" << endl;
-	for (int i = 0; i < 1; i++)
+
+	for (int i = 0; i < s_mesh.faces.size(); i++)
 	{
 		Mesh::Face face;
 		Mesh::VertexSubdiv* v0 = &newVertices[s_mesh.faces[i].vertices[0]];
 		Mesh::VertexSubdiv* v1 = &newVertices[s_mesh.faces[i].vertices[1]];
 		Mesh::VertexSubdiv* v2 = &newVertices[s_mesh.faces[i].vertices[2]];
-		Mesh::VertexSubdiv* j0 = v0->edge->vertex;
-		Mesh::VertexSubdiv* j1 = v1->edge->vertex;
-		Mesh::VertexSubdiv* j2 = v2->edge->vertex;
-		cout << j0->position.x << " " << j0->position.y << " " << j0->position.z << endl;
-		cout << s_mesh.faces[i].vertices[0] << " " << s_mesh.faces[i].vertices[1] << " " << s_mesh.faces[i].vertices[2] << endl;
-		//cout << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0)) << " " << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1)) << " " << abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2)) << endl;
+		Mesh::VertexSubdiv* j0 = &newVertices[4];
+		Mesh::VertexSubdiv* j1 = &newVertices[5];
+		Mesh::VertexSubdiv* j2 = &newVertices[6];
+	
+		j0 = s_mesh.faces[i].edge->vertex;
+		j1 = s_mesh.faces[i].edge->next->vertex;
+		j2 = s_mesh.faces[i].edge->next->next->vertex;
+
 		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
 		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
 		
 		newFaces.push_back(face);
-		//cout << "megy" << endl;
-		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0));
-		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
-		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
 
-		//newFaces.push_back(face);
+		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v0));
+		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
 
-		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1));
-		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
-		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
+		newFaces.push_back(face);
 
-		//newFaces.push_back(face);
+		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v1));
+		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j0));
 
-		//face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2));
-		//face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
-		//face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+		newFaces.push_back(face);
 
-		//newFaces.push_back(face);
+		face.vertices[0] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *v2));
+		face.vertices[1] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j2));
+		face.vertices[2] = abs(newVertices.begin() - find(newVertices.begin(), newVertices.end(), *j1));
+
+		newFaces.push_back(face);
 	}
-	/*
+	
+
+
 	for (int i = 0; i < newFaces.size(); i++)
 	{
 		Mesh::HalfEdge halfEdge;
@@ -319,52 +293,97 @@ void subdivide()
 		halfEdge2find.pair = NULL;
 
 		vector<Mesh::HalfEdge>::iterator pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
+
 		if (pair != newEdges.end())
 		{
 			halfEdge.pair = &(*pair);
 		}
 		newEdges.push_back(halfEdge);
 		newVertices[newFaces[i].vertices[0]].edge = &newEdges[newEdges.size() - 1];
+
 		//============================================================================================
-		halfEdge.v1 = newFaces[i].vertices[0];
-		halfEdge.v2 = newFaces[i].vertices[1];
-		halfEdge.vertex = &newVertices[newFaces[i].vertices[1]];
+
+		halfEdge.v1 = newFaces[i].vertices[1];
+		halfEdge.v2 = newFaces[i].vertices[2];
+		halfEdge.vertex = &newVertices[newFaces[i].vertices[2]];
 		halfEdge.face = &newFaces[i];
 
-		halfEdge2find.v1 = newFaces[i].vertices[1];
-		halfEdge2find.v2 = newFaces[i].vertices[0];
+		halfEdge2find.v1 = newFaces[i].vertices[2];
+		halfEdge2find.v2 = newFaces[i].vertices[1];
 		halfEdge2find.pair = NULL;
 
 		pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
+
 		if (pair != newEdges.end())
 		{
 			halfEdge.pair = &(*pair);
 		}
+
 		newEdges.push_back(halfEdge);
-		newVertices[newFaces[i].vertices[0]].edge = &newEdges[newEdges.size() - 1];
+		newVertices[newFaces[i].vertices[1]].edge = &newEdges[newEdges.size() - 1];
+
 		//============================================================================================
-		halfEdge.v1 = newFaces[i].vertices[0];
-		halfEdge.v2 = newFaces[i].vertices[1];
-		halfEdge.vertex = &newVertices[newFaces[i].vertices[1]];
+
+		halfEdge.v1 = newFaces[i].vertices[2];
+		halfEdge.v2 = newFaces[i].vertices[0];
+		halfEdge.vertex = &newVertices[newFaces[i].vertices[0]];
 		halfEdge.face = &newFaces[i];
 
-		halfEdge2find.v1 = newFaces[i].vertices[1];
-		halfEdge2find.v2 = newFaces[i].vertices[0];
+		halfEdge2find.v1 = newFaces[i].vertices[0];
+		halfEdge2find.v2 = newFaces[i].vertices[2];
 		halfEdge2find.pair = NULL;
 
 		pair = find(newEdges.begin(), newEdges.end(), halfEdge2find);
+
 		if (pair != newEdges.end())
 		{
 			halfEdge.pair = &(*pair);
 		}
+
 		newEdges.push_back(halfEdge);
-		newVertices[newFaces[i].vertices[0]].edge = &newEdges[newEdges.size() - 1];
+		newVertices[newFaces[i].vertices[2]].edge = &newEdges[newEdges.size() - 1];
 
 		newEdges[newEdges.size() - 3].next = &newEdges[newEdges.size() - 2];
 		newEdges[newEdges.size() - 2].next = &newEdges[newEdges.size() - 1];
 		newEdges[newEdges.size() - 1].next = &newEdges[newEdges.size() - 3];
+
+		if (newEdges[newEdges.size() - 3].pair != NULL)
+		{
+			newEdges[newEdges.size() - 3].pair->pair = &newEdges[newEdges.size() - 3];
+		}
+
+		if (newEdges[newEdges.size() - 2].pair != NULL)
+		{
+			newEdges[newEdges.size() - 2].pair->pair = &newEdges[newEdges.size() - 2];
+		}
+
+		if (newEdges[newEdges.size() - 1].pair != NULL)
+		{
+			newEdges[newEdges.size() - 1].pair->pair = &newEdges[newEdges.size() - 1];
+		}
+
 		newFaces[i].edge = &newEdges[newEdges.size() - 3];
-	}*/
+	}
+
+	for (int i = 0; i < s_mesh.verticesSubdiv.size(); i++)
+	{
+		int n=0;
+		Mesh::HalfEdge* kiindulo = s_mesh.verticesSubdiv[i].edge;
+		Mesh::HalfEdge* jelenlegi = s_mesh.verticesSubdiv[i].edge;
+		glm::vec3 s= { 0,0,0 };
+		s += jelenlegi->next->vertex->position;
+		jelenlegi = jelenlegi->next->next->pair;
+		n++;
+		while (kiindulo != jelenlegi)
+		{
+			s += jelenlegi->next->vertex->position;
+			jelenlegi = jelenlegi->next -> next -> pair;
+			n++;
+		}
+		float beta = pow((3.0f / 8.0f + cos(2 * glm::pi<float>() / n) / 4.0f), 2);
+		float alpha = (5.0f / 8.0f - beta) / n;
+		newVertices[i].position= (1 - n * alpha) * s_mesh.verticesSubdiv[i].position + alpha * s;
+	}
 
 	s_mesh.verticesSubdiv = newVertices;
 	s_mesh.faces = newFaces;
