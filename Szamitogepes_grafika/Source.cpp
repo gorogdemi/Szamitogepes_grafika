@@ -94,16 +94,16 @@ void initScene()
 	}
 
 	glGenBuffers(1, &s_uboModel);
-	//cout << "smesh halfedgek" << endl;
-	//for (int h = 0; h < s_mesh.halfEdge.size(); h++)
-	//{
-	//	cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h].face << " " << s_mesh.halfEdge[h].pair->face << " ";
-	//	if (s_mesh.halfEdge[h].pair != NULL)
-	//	{
-	//		cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
-	//	}
-	//	cout << endl;
-	//}
+	cout << "smesh halfedgek" << endl;
+	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
+	{
+		cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << s_mesh.halfEdge[h].pair << " ";
+		if (s_mesh.halfEdge[h].pair != NULL)
+		{
+			cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
+		}
+		cout << endl;
+	}
 
 	//for (int i = 0; i < s_mesh.indices.size(); i++)
 	//{
@@ -184,49 +184,51 @@ void renderScene()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//BASE
+	
 
-	glUseProgram(s_program);
+	//glUseProgram(s_program);
 
-	for (size_t i = 0; i < s_models.size(); ++i)
-	{
-		UniformDataModel modelData;
-		modelData.m_modelView = s_view * s_models[i]*glm::scale(glm::vec3(0.99, 0.99, 0.99));
-		modelData.m_view = s_view;
-		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-		modelData.m_mvp = s_projection * modelData.m_modelView;
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+	//for (size_t i = 0; i < s_models.size(); ++i)
+	//{
+	//	UniformDataModel modelData;
+	//	modelData.m_modelView = s_view * s_models[i]*glm::scale(glm::vec3(0.99, 0.99, 0.99));
+	//	modelData.m_view = s_view;
+	//	modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+	//	modelData.m_mvp = s_projection * modelData.m_modelView;
+	//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
+	//	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
-		glBindVertexArray(vao);
-		glPointSize(10);
-		//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
-	}
+	//	glBindVertexArray(vao);
+	//	glPointSize(10);
+	//	//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+	//}
 
-	glBindVertexArray(0);
-	glUseProgram(boundingbox);
+	//glBindVertexArray(0);
+	//glUseProgram(boundingbox);
 
-	glBindVertexArray(vao);
+	//glBindVertexArray(vao);
 
-	/** Kirajzoljuk a határolókat. */
-	for (size_t i = 0; i < s_models.size(); ++i)
-	{
-		/** Feltöltjük a uniformokat mátrixot. */
-		glm::mat4 mvp = s_projection * s_view * s_models[i] * glm::scale(glm::vec3(0.99, 0.99, 0.99));
-		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
-		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
+	///** Kirajzoljuk a határolókat. */
+	//for (size_t i = 0; i < s_models.size(); ++i)
+	//{
+	//	/** Feltöltjük a uniformokat mátrixot. */
+	//	glm::mat4 mvp = s_projection * s_view * s_models[i] * glm::scale(glm::vec3(0.99, 0.99, 0.99));
+	//	glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	//	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+	//	glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
-		/** Kirajzoljuk indexelve a kockát. */
-		glLineWidth(4);
-		glDrawElements(GL_POINTS, 12, GL_UNSIGNED_INT, nullptr);
-		//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
-	}
+	//	/** Kirajzoljuk indexelve a kockát. */
+	//	glLineWidth(4);
+	//	glDrawElements(GL_POINTS, 12, GL_UNSIGNED_INT, nullptr);
+	//	//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
+	//}
 
-	glBindVertexArray(0);
+	//glBindVertexArray(0);
 
 
 	//MODELL
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glUseProgram(s_program);
 
@@ -255,7 +257,7 @@ void renderScene()
 	{
 		/** Feltöltjük a uniformokat mátrixot. */
 		glm::mat4 mvp = s_projection * s_view * s_models[i];
-		glm::vec3 boundsColor = glm::vec3(0.0f, 0.0f, 1.0f);
+		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
 		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
@@ -267,6 +269,30 @@ void renderScene()
 
 	glBindVertexArray(0);
 
+	//===========================================================================
+	
+	glLineWidth(10);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	glUseProgram(boundingbox);
+
+	for (size_t i = 0; i < s_models.size(); ++i)
+	{
+		UniformDataModel modelData;
+		modelData.m_modelView = s_view * s_models[i];
+		modelData.m_view = s_view;
+		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+		modelData.m_mvp = s_projection * modelData.m_modelView;
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+
+		glBindVertexArray(s_mesh.vao);
+		glPointSize(10);
+		glDrawElements(GL_TRIANGLES, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+	}
+
+	glBindVertexArray(0);
 	
 }
 
