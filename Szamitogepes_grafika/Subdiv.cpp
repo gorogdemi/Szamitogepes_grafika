@@ -202,7 +202,7 @@ void subdivide()
 	//	vector<int> EM(H);
 	//	vector<Mesh::HalfEdge> NE(3 * 4 * F);
 	//	vector<Mesh::Face> NF{ 4 * F };
-	
+	cout << "Subdiv" << endl;
 	int darab2 = s_mesh.verticesSubdiv.size();
 	
 	vector<Mesh::VertexSubdiv> newVertices;
@@ -213,7 +213,7 @@ void subdivide()
 	
 	vector<Mesh::Face> newFaces;
 	int darab = newVertices.size();
-
+	
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
 
@@ -283,7 +283,7 @@ void subdivide()
 			s_mesh.halfEdge[h].used = false;
 
 	}
-
+	
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
 		if (!s_mesh.halfEdge[h].used)
