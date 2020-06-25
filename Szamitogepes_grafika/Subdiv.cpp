@@ -525,7 +525,6 @@ void subdivideButterfly()
 {
 
 	//cout << "Subdiv" << endl;
-	int darab2 = s_mesh.verticesSubdiv.size();
 
 	vector<Mesh::VertexSubdiv> newVertices;
 	newVertices = s_mesh.verticesSubdiv;
@@ -543,13 +542,16 @@ void subdivideButterfly()
 
 	}
 
+	float w=1.0/8.0;
+
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
 
 		if (!s_mesh.halfEdge[h].used)
 		{
 
-			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
+			glm::vec3 u = (0.5f*(s_mesh.halfEdge[h].vertex->position+s_mesh.halfEdge[h].pair->vertex->position))+(w*(s_mesh.halfEdge[h].next->vertex->position + s_mesh.halfEdge[h].pair->next->vertex->position))-
+				((w/2.0f)*(s_mesh.halfEdge[h].next->pair->next->vertex->position+s_mesh.halfEdge[h].next->next->pair->next->vertex->position+ s_mesh.halfEdge[h].pair->next->pair->next->vertex->position + s_mesh.halfEdge[h].pair->next->next->pair->next->vertex->position));
 
 			Mesh::VertexSubdiv* temp = new Mesh::VertexSubdiv();
 			temp->position = u;

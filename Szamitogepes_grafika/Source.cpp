@@ -15,12 +15,15 @@ using namespace std;
 
 bool isKeyPressed = false;
 
+glm::mat4 trans2;
+
 struct UniformDataModel
 {
 	glm::mat4 m_modelView;
 	glm::mat4 m_view;
 	glm::mat4 m_normal;
 	glm::mat4 m_mvp;
+	glm::mat4 m_rotate;
 };
 
 array<glm::mat4, 1> s_models =
@@ -83,7 +86,7 @@ void initScene()
 	boundingbox = loadProgram("bounds");
 
 	/** Betöltjük a mesht. */
-	s_mesh = loadMesh("test.obj");
+	s_mesh = loadMesh("test3.obj");
 	cout << "Loading done." << endl;
 
 	for (int i = 0; i < s_mesh.vertices.size(); i++)
@@ -239,6 +242,7 @@ void renderScene()
 		modelData.m_view = s_view;
 		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
 		modelData.m_mvp = s_projection * modelData.m_modelView;
+		modelData.m_rotate = trans2;
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
@@ -296,12 +300,16 @@ void renderScene()
 	
 }
 
+float radianok = 0;
+
 void updateScene(double delta)
 {
+	radianok += 0.5f;
 	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	trans2 = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
 	s_models[0] = s_models[0] * trans;
-
+	trans2 = glm::rotate(trans2, glm::radians(radianok), glm::vec3(0.0f, 1.0f, 0.0f));
 	/** Escape billentyű. */
 	if (glfwGetKey(s_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -333,7 +341,7 @@ void updateScene(double delta)
 	{
 		if (!isKeyPressed) {
 
-			subdivideKobbelt();
+			subdivideButterfly();
 			
 			s_mesh.loadSubdivData();
 
