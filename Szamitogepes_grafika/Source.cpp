@@ -271,7 +271,7 @@ void renderScene()
 
 	//===========================================================================
 	
-	glLineWidth(10);
+	glLineWidth(2);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -332,24 +332,10 @@ void updateScene(double delta)
 	if (glfwGetKey(s_window, GLFW_KEY_ENTER) == GLFW_PRESS)
 	{
 		if (!isKeyPressed) {
-			subdivide();
+
+			subdivideKobbelt();
 			
 			s_mesh.loadSubdivData();
-			//for (int i = 0; i < s_mesh.indices.size(); i++)
-			//{
-			//	//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
-			//	//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
-			//	//cout << "=============================================" << endl;
-			//	cout << s_mesh.indices[i] << endl;
-			//}
-			//for (int i = 0; i < s_mesh.vertices.size(); i++)
-			//{
-			//	cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
-			//	//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
-			//	//cout << "=============================================" << endl;
-			//	//cout << s_mesh.indices[i] << endl;
-			//}
-			//cout << s_mesh.indices.size() << endl;
 
 			glBindBuffer(GL_ARRAY_BUFFER, s_mesh.vbo);
 			glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);
@@ -358,17 +344,6 @@ void updateScene(double delta)
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_mesh.ibo);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_mesh.indices.size() * sizeof(GLuint), s_mesh.indices.data(), GL_STATIC_DRAW);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-			/* Konfiguráljuk a VAO-t. */
-
-			/*glBindVertexArray(s_mesh.vao);
-			glBindBuffer(GL_ARRAY_BUFFER, s_mesh.vbo);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_mesh.ibo);
-			glBindVertexArray(0);*/
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

@@ -47,6 +47,7 @@ struct Mesh {
 	struct Face {
 		int vertices[3];
 		HalfEdge* edge;
+		int centerPoint;
 	};
 
 	GLuint vbo, vao, ibo;
@@ -205,9 +206,12 @@ struct Mesh {
 		//	cout << endl;
 		//}
 		//cout << endl; cout << endl;
+		cout << this->verticesSubdiv.size() << endl;
 	}
 };
 
 Mesh loadMesh(string fileName);
 
-void subdivide();
+void subdivideLoop();
+void subdivideKobbelt();
+void subdivideButterfly();
