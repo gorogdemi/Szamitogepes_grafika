@@ -83,7 +83,7 @@ void initScene()
 	boundingbox = loadProgram("bounds");
 
 	/** Betöltjük a mesht. */
-	s_mesh = loadMesh("piramis.obj");
+	s_mesh = loadMesh("test.obj");
 	cout << "Loading done." << endl;
 
 	for (int i = 0; i < s_mesh.vertices.size(); i++)

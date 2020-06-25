@@ -88,6 +88,9 @@ struct Mesh {
 		}
 
 		
+		this->halfEdge.reserve(this->faces.size() * 3);
+
+		this->halfEdge.clear();
 
 		for (int i = 0; i < this->faces.size(); i++)
 		{
@@ -175,6 +178,33 @@ struct Mesh {
 
 			this->faces[i].edge = &this->halfEdge[this->halfEdge.size() - 3];
 		}
+
+		//for (int h = 0; h < this->halfEdge.size(); h++)
+		//{
+		//	cout << this->halfEdge[h].v1 << " " << this->halfEdge[h].v2 << " " << &this->halfEdge[h] << " " << this->halfEdge[h].pair << " ";
+		//	if (this->halfEdge[h].pair != NULL)
+		//	{
+		//		cout << this->halfEdge[h].pair->v1 << " " << this->halfEdge[h].pair->v2;
+		//	}
+		//	cout << endl;
+		//}
+
+		//for (int h = 0; h < this->verticesSubdiv.size(); h++)
+		//{
+		//	cout << this->verticesSubdiv[h].position.x << " " << this->verticesSubdiv[h].position.y << " " << this->verticesSubdiv[h].position.z << " ";
+		//	cout << endl;
+		//}
+		//cout << endl; cout << endl;
+
+		//for (int h = 0; h < this->faces.size(); h++)
+		//{
+		//	cout << this->faces[h].vertices[0] << " " ;
+		//	cout << this->faces[h].vertices[1] << " " ;
+		//	cout << this->faces[h].vertices[2] << " " ;
+
+		//	cout << endl;
+		//}
+		//cout << endl; cout << endl;
 	}
 };
 

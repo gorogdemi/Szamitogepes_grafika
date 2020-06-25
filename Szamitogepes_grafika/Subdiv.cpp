@@ -22,11 +22,11 @@ Mesh loadMesh(string fileName)
 
 	while (x == "v")
 	{
-		Mesh::Vertex temp;
+		Mesh::Vertex *temp = new Mesh::Vertex();
 		GLfloat xx, y, z;
 		be >> xx >> y >> z;
-		temp.position = glm::vec3(xx, y, z);
-		mesh.vertices.push_back(temp);
+		temp->position = glm::vec3(xx, y, z);
+		mesh.vertices.push_back(*temp);
 		be >> x;
 	}
 
@@ -76,7 +76,7 @@ Mesh loadMesh(string fileName)
 		mesh.faces.push_back(face);
 	}
 
-	mesh.halfEdge.reserve(mesh.faces.size()*3);
+	mesh.halfEdge.reserve(2000000);
 
 	for (int i = 0; i < mesh.faces.size(); i++)
 	{
@@ -202,7 +202,7 @@ void subdivide()
 	//	vector<int> EM(H);
 	//	vector<Mesh::HalfEdge> NE(3 * 4 * F);
 	//	vector<Mesh::Face> NF{ 4 * F };
-	cout << "Subdiv" << endl;
+	//cout << "Subdiv" << endl;
 	int darab2 = s_mesh.verticesSubdiv.size();
 	
 	vector<Mesh::VertexSubdiv> newVertices;
@@ -218,8 +218,10 @@ void subdivide()
 	{
 
 		s_mesh.halfEdge[h].used = false;
+		//cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << endl;
 
 	}
+	
 	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
 	{
 
@@ -228,8 +230,11 @@ void subdivide()
 
 			glm::vec3 u = (glm::vec3(s_mesh.halfEdge[h].vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->vertex->position)) * 3.0f / 8.0f + (glm::vec3(s_mesh.halfEdge[h].next->vertex->position) + glm::vec3(s_mesh.halfEdge[h].pair->next->vertex->position)) / 8.0f;
 			
-			
-			newVertices.push_back(Mesh::VertexSubdiv{ u,glm::vec3(0,0,0),NULL });
+			Mesh::VertexSubdiv *temp = new Mesh::VertexSubdiv();
+			temp->position = u;
+			temp->normal = glm::vec3(0, 0, 0);
+			temp->edge = NULL;
+			newVertices.push_back(*temp);
 			
 			//s_mesh.halfEdge[h].pair->vertex = &newVertices[newVertices.size() - 1];
 			//s_mesh.halfEdge[h].vertex= &newVertices[newVertices.size() - 1];
