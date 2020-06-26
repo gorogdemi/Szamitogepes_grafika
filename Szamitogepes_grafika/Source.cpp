@@ -13,7 +13,12 @@
 
 using namespace std;
 
-bool isKeyPressed = false;
+bool isKeyPressedK = false;
+bool isKeyPressedL = false;
+bool isKeyPressedB = false;
+bool isKeyPressedM = false;
+bool isKeyPressedF = false;
+bool displayMesh = false;
 
 glm::mat4 trans2;
 
@@ -140,7 +145,7 @@ void cleanUpScene()
 
 void renderScene()
 {
-	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
+	glClearColor(0.2f, 0.6f, 0.3f, 1.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -167,46 +172,56 @@ void renderScene()
 	}
 
 	glBindVertexArray(0);
-	glUseProgram(boundingbox);
-	glBindVertexArray(_mesh.vao);
-
-	glLineWidth(4);
-
-	for (size_t i = 0; i < _models.size(); ++i)
-	{
-		glm::mat4 mvp = _projection * _view * _models[i];
-		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
-		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
-
-		glDrawElements(GL_POINTS, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-	}
-
-	glBindVertexArray(0);
 
 	//===========================================================================
 
-	glLineWidth(2);
-	glPointSize(10);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	glUseProgram(boundingbox);
-
-	for (size_t i = 0; i < _models.size(); ++i)
+	if (displayMesh)
 	{
-		UniformDataModel modelData;
-		modelData.m_modelView = _view * _models[i];
-		modelData.m_view = _view;
-		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-		modelData.m_mvp = _projection * modelData.m_modelView;
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+		glUseProgram(boundingbox);
 		glBindVertexArray(_mesh.vao);
 
-		glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-	}
+		glLineWidth(4);
+		glPointSize(5);
 
-	glBindVertexArray(0);
+		for (size_t i = 0; i < _models.size(); ++i)
+		{
+			glm::mat4 mvp = _projection * _view * _models[i];
+			glm::vec3 boundsColor = glm::vec3(0.0f, 1.0f, 0.0f);
+			glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+			glUniform3fv(1, 1, glm::value_ptr(boundsColor));
+
+			glDrawElements(GL_POINTS, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+		}
+
+		glBindVertexArray(0);
+
+		//===========================================================================
+
+		glLineWidth(3);
+		glPointSize(10);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		glUseProgram(boundingbox);
+
+		for (size_t i = 0; i < _models.size(); ++i)
+		{
+			UniformDataModel modelData;
+			modelData.m_modelView = _view * _models[i];
+			modelData.m_view = _view;
+			modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+			modelData.m_mvp = _projection * modelData.m_modelView;
+			glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+
+			glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+			glUniform3fv(1, 1, glm::value_ptr(boundsColor));
+
+			glBindVertexArray(_mesh.vao);
+
+			glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+		}
+		glBindVertexArray(0);
+	}
 }
 
 void updateScene(double delta)
@@ -245,9 +260,27 @@ void updateScene(double delta)
 		_eye -= _right * _moveSpeed * (float)delta;
 	}
 
-	if (glfwGetKey(_window, GLFW_KEY_ENTER) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_M) == GLFW_PRESS)
 	{
-		if (!isKeyPressed)
+		if (!isKeyPressedM)
+		{
+			displayMesh = !displayMesh;
+			isKeyPressedM = true;
+		}
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_F) == GLFW_PRESS)
+	{
+		if (!isKeyPressedF)
+		{
+			saveMesh("finomitott");
+			isKeyPressedF = true;
+		}
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		if (!isKeyPressedL)
 		{
 			subdivideLoop();
 
@@ -263,14 +296,77 @@ void updateScene(double delta)
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			isKeyPressedL = true;
 		}
-
-		isKeyPressed = true;
 	}
 
-	if (glfwGetKey(_window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+	if (glfwGetKey(_window, GLFW_KEY_K) == GLFW_PRESS)
 	{
-		isKeyPressed = false;
+		if (!isKeyPressedK)
+		{
+			subdivideKobbelt();
+
+			_mesh.loadSubdivData();
+
+			glBindBuffer(GL_ARRAY_BUFFER, _mesh.vbo);
+			glBufferData(GL_ARRAY_BUFFER, _mesh.vertices.size() * sizeof(Mesh::Vertex), _mesh.vertices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			isKeyPressedK = true;
+		}
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_B) == GLFW_PRESS)
+	{
+		if (!isKeyPressedB)
+		{
+			subdivideButterfly();
+
+			_mesh.loadSubdivData();
+
+			glBindBuffer(GL_ARRAY_BUFFER, _mesh.vbo);
+			glBufferData(GL_ARRAY_BUFFER, _mesh.vertices.size() * sizeof(Mesh::Vertex), _mesh.vertices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			isKeyPressedB = true;
+		}
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_L) == GLFW_RELEASE && isKeyPressedL)
+	{
+		isKeyPressedL = false;
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_K) == GLFW_RELEASE && isKeyPressedK)
+	{
+		isKeyPressedK = false;
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_B) == GLFW_RELEASE && isKeyPressedB)
+	{
+		isKeyPressedB = false;
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_M) == GLFW_RELEASE && isKeyPressedM)
+	{
+		isKeyPressedM = false;
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_F) == GLFW_RELEASE && isKeyPressedF)
+	{
+		isKeyPressedF = false;
 	}
 
 	/** Forgás kezelése. */

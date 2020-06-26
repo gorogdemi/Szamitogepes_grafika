@@ -188,6 +188,29 @@ Mesh loadMesh(string fileName)
 	return mesh;
 }
 
+void saveMesh(string fileName)
+{
+	ofstream stream(fileName+".obj");
+	
+	stream << "o finom" << endl << endl;
+
+	for (int i = 0; i < _mesh.vertices.size(); i++)
+	{
+		stream << "v " << _mesh.vertices[i].position.x << " " << _mesh.vertices[i].position.y << " " << _mesh.vertices[i].position.z << endl;
+	}
+
+	stream << endl;
+	
+	for (int i = 0; i < _mesh.faces.size(); i++)
+	{
+		stream << "f " << _mesh.faces[i].vertices[0]+1 << " " << _mesh.faces[i].vertices[1]+1 << " " << _mesh.faces[i].vertices[2]+1 << endl;
+	}
+	
+	stream << endl;
+
+	stream.close();
+}
+
 void subdivideLoop()
 {
 	int count2 = _mesh.verticesSubdiv.size();

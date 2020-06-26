@@ -186,6 +186,8 @@ struct Mesh {
 
 Mesh loadMesh(string fileName);
 
+void saveMesh(string fileName);
+
 void subdivideLoop();
 
 void subdivideKobbelt();
