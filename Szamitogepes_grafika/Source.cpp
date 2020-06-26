@@ -26,53 +26,52 @@ struct UniformDataModel
 	glm::mat4 m_rotate;
 };
 
-array<glm::mat4, 1> s_models =
+array<glm::mat4, 1> _models =
 {
 	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(1.0f)),
-	//=================================================================================
 };
 
-static GLuint s_uboModel = 0, s_uboMaterial = 0, s_uboLight = 0;
-/** Ablakunk mérete. */
-static int s_width = 1366, s_height = 768;
-static GLuint s_vboCube = 0, s_iboCube = 0, s_vaoCube = 0;
-/** Az OpenGL kontextussal rendelkező GLFW ablakunk. */
-static GLFWwindow* s_window = NULL;
+static GLuint _uboModel = 0, _uboMaterial = 0, _uboLight = 0;
+static int _width = 1366, _height = 768;
+static GLuint _vboCube = 0, _iboCube = 0, _vaoCube = 0;
+static GLFWwindow* _window = NULL;
 
 /** Frissítések közötti minimális idő. */
-static double s_updateDeltaTime = 1.0 / 60.0;
+static double _updateDeltaTime = 1.0 / 60.0;
 
-extern Mesh s_mesh;
+extern Mesh _mesh;
 
-static GLuint s_program = 0;
+static GLuint _program = 0;
 static GLuint boundingbox = 2;
 
-static glm::mat4 s_view, s_projection;
+static glm::mat4 _view, _projection;
 
-static glm::vec3 s_eye = glm::vec3(0.0f, 0.0f, 3.0f), s_forward = glm::vec3(0.0f), s_right = glm::vec3(0.0f), s_up = glm::vec3(0.0f);
+static glm::vec3 _eye = glm::vec3(0.0f, 0.0f, 3.0f), _forward = glm::vec3(0.0f), _right = glm::vec3(0.0f), _up = glm::vec3(0.0f);
 
-static GLfloat s_phi = glm::radians(90.0f), s_theta = glm::radians(270.0f);
+static GLfloat _phi = glm::radians(90.0f), _theta = glm::radians(270.0f);
 
-static GLfloat s_moveSpeed = 2.0f, s_turnSpeed = glm::radians(3.0f);
+static GLfloat _moveSpeed = 2.0f, _turnSpeed = glm::radians(3.0f);
 
-static double s_mouseX = -1.0, s_mouseY = -1.0;
+static double _mouseX = -1.0, _mouseY = -1.0;
 
 GLuint vbo, ibo, vao;
+
+float radians = 0;
 
 //=====================================================================================================================
 
 void computeCameraMatrices()
 {
-	s_forward = glm::vec3(
-		glm::cos(s_theta) * glm::sin(s_phi),
-		glm::cos(s_phi),
-		glm::sin(s_theta) * glm::sin(s_phi)
+	_forward = glm::vec3(
+		glm::cos(_theta) * glm::sin(_phi),
+		glm::cos(_phi),
+		glm::sin(_theta) * glm::sin(_phi)
 	);
-	s_right = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), s_forward));
-	s_up = glm::normalize(glm::cross(s_forward, s_right));
+	_right = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), _forward));
+	_up = glm::normalize(glm::cross(_forward, _right));
 
-	s_view = glm::lookAt(s_eye, s_eye + s_forward, glm::vec3(0.0f, 1.0f, 0.0f));
-	s_projection = glm::perspective(glm::radians(55.0f), (float)s_width / (float)s_height, 0.01f, 20.0f);
+	_view = glm::lookAt(_eye, _eye + _forward, glm::vec3(0.0f, 1.0f, 0.0f));
+	_projection = glm::perspective(glm::radians(55.0f), (float)_width / (float)_height, 0.01f, 20.0f);
 }
 
 //=====================================================================================================================
@@ -82,63 +81,24 @@ void initScene()
 	computeCameraMatrices();
 
 	/** Betöltjük a rajzoláshoz használandó shader programot. */
-	s_program = loadProgram("shader");
+	_program = loadProgram("shader");
 	boundingbox = loadProgram("bounds");
 
 	/** Betöltjük a mesht. */
-	s_mesh = loadMesh("test3.obj");
+	_mesh = loadMesh("test3.obj");
 	cout << "Loading done." << endl;
 
-	for (int i = 0; i < s_mesh.vertices.size(); i++)
-	{
-		//cout << s_mesh.vertices[i].position.x << " " << s_mesh.vertices[i].position.y << " " << s_mesh.vertices[i].position.z << endl;
-		//cout << s_mesh.vertices[i].normal.x << " " << s_mesh.vertices[i].normal.y << " " << s_mesh.vertices[i].normal.z << endl;
-		//cout << "=============================================" << endl;
-	}
-
-	glGenBuffers(1, &s_uboModel);
-	cout << "smesh halfedgek" << endl;
-	for (int h = 0; h < s_mesh.halfEdge.size(); h++)
-	{
-		cout << s_mesh.halfEdge[h].v1 << " " << s_mesh.halfEdge[h].v2 << " " << &s_mesh.halfEdge[h] << " " << s_mesh.halfEdge[h].pair << " ";
-		if (s_mesh.halfEdge[h].pair != NULL)
-		{
-			cout << s_mesh.halfEdge[h].pair->v1 << " " << s_mesh.halfEdge[h].pair->v2;
-		}
-		cout << endl;
-	}
-
-	//for (int i = 0; i < s_mesh.indices.size(); i++)
-	//{
-	//	cout << s_mesh.indices[i] << " " ;
-	//	if ((i + 1) % 3 == 0)cout << endl;
-	//}
-	//cout <<"======="<< endl;
-	//for (int i = 0; i < s_mesh.faces.size(); i++)
-	//{
-	//	cout << s_mesh.faces[i].vertices[0] << " " << s_mesh.faces[i].vertices[1] << " " << s_mesh.faces[i].vertices[2] << endl;
-	//	//if ((i+1) % 3 == 0)cout << endl;
-	//}
-	//cout << "=======" << endl;
-	//for (int i = 0; i < s_mesh.halfEdge.size(); i++)
-	//{
-	//	cout << s_mesh.halfEdge[i].v1 << " " << s_mesh.halfEdge[i].v2 << " " << s_mesh.halfEdge[i].pair << endl;
-
-	//}
-
-	//cout << "=======" << endl;
-	//cout << s_mesh.verticesSubdiv.size() << endl;
-
+	glGenBuffers(1, &_uboModel);
 	glGenBuffers(1, &vbo);
 	glGenBuffers(1, &ibo);
 	glGenVertexArrays(1, &vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, _mesh.vertices.size() * sizeof(Mesh::Vertex), _mesh.vertices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_mesh.indices.size() * sizeof(GLuint), s_mesh.indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	/** Konfiguráljuk a VAO-t. */
@@ -159,198 +119,146 @@ void cleanUpScene()
 {
 	/** Töröljük a submesheket. */
 
-	if (s_mesh.vao != 0)
+	if (_mesh.vao != 0)
 	{
-		glDeleteVertexArrays(1, &s_mesh.vao);
+		glDeleteVertexArrays(1, &_mesh.vao);
 	}
 
-	if (s_mesh.vbo != 0)
+	if (_mesh.vbo != 0)
 	{
-		glDeleteBuffers(1, &s_mesh.vbo);
+		glDeleteBuffers(1, &_mesh.vbo);
 	}
 
-	if (s_mesh.ibo != 0)
+	if (_mesh.ibo != 0)
 	{
-		glDeleteBuffers(1, &s_mesh.ibo);
+		glDeleteBuffers(1, &_mesh.ibo);
 	}
 
 	/** Töröljük a shader programot. */
-	glDeleteProgram(s_program);
+	glDeleteProgram(_program);
 }
 
 void renderScene()
 {
-	//cout << s_mesh.indices.size() << " " ;
 	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-
-	//glUseProgram(s_program);
-
-	//for (size_t i = 0; i < s_models.size(); ++i)
-	//{
-	//	UniformDataModel modelData;
-	//	modelData.m_modelView = s_view * s_models[i]*glm::scale(glm::vec3(0.99, 0.99, 0.99));
-	//	modelData.m_view = s_view;
-	//	modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-	//	modelData.m_mvp = s_projection * modelData.m_modelView;
-	//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
-	//	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
-
-	//	glBindVertexArray(vao);
-	//	glPointSize(10);
-	//	//glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
-	//}
-
-	//glBindVertexArray(0);
-	//glUseProgram(boundingbox);
-
-	//glBindVertexArray(vao);
-
-	///** Kirajzoljuk a határolókat. */
-	//for (size_t i = 0; i < s_models.size(); ++i)
-	//{
-	//	/** Feltöltjük a uniformokat mátrixot. */
-	//	glm::mat4 mvp = s_projection * s_view * s_models[i] * glm::scale(glm::vec3(0.99, 0.99, 0.99));
-	//	glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
-	//	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-	//	glUniform3fv(1, 1, glm::value_ptr(boundsColor));
-
-	//	/** Kirajzoljuk indexelve a kockát. */
-	//	glLineWidth(4);
-	//	glDrawElements(GL_POINTS, 12, GL_UNSIGNED_INT, nullptr);
-	//	//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
-	//}
-
-	//glBindVertexArray(0);
-
-
-	//MODELL
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glUseProgram(s_program);
+	glUseProgram(_program);
 
-	for (size_t i = 0; i < s_models.size(); ++i)
+	for (size_t i = 0; i < _models.size(); ++i)
 	{
 		UniformDataModel modelData;
-		modelData.m_modelView = s_view * s_models[i];
-		modelData.m_view = s_view;
+		modelData.m_modelView = _view * _models[i];
+		modelData.m_view = _view;
 		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-		modelData.m_mvp = s_projection * modelData.m_modelView;
+		modelData.m_mvp = _projection * modelData.m_modelView;
 		modelData.m_rotate = trans2;
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
-		glBindVertexArray(s_mesh.vao);
+		glBindVertexArray(_mesh.vao);
 		glPointSize(10);
-		glDrawElements(GL_TRIANGLES, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
 
 	glBindVertexArray(0);
 	glUseProgram(boundingbox);
+	glBindVertexArray(_mesh.vao);
 
-	glBindVertexArray(s_mesh.vao);
+	glLineWidth(4);
 
-	/** Kirajzoljuk a határolókat. */
-	for (size_t i = 0; i < s_models.size(); ++i)
+	for (size_t i = 0; i < _models.size(); ++i)
 	{
-		/** Feltöltjük a uniformokat mátrixot. */
-		glm::mat4 mvp = s_projection * s_view * s_models[i];
+		glm::mat4 mvp = _projection * _view * _models[i];
 		glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
 		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 		glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
-		/** Kirajzoljuk indexelve a kockát. */
-		glLineWidth(4);
-		glDrawElements(GL_POINTS, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-		//glDrawArrays(GL_POINTS,0, s_mesh.indices.size()-1);
+		glDrawElements(GL_POINTS, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
 
 	glBindVertexArray(0);
 
 	//===========================================================================
-	
-	glLineWidth(2);
 
+	glLineWidth(2);
+	glPointSize(10);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glUseProgram(boundingbox);
 
-	for (size_t i = 0; i < s_models.size(); ++i)
+	for (size_t i = 0; i < _models.size(); ++i)
 	{
 		UniformDataModel modelData;
-		modelData.m_modelView = s_view * s_models[i];
-		modelData.m_view = s_view;
+		modelData.m_modelView = _view * _models[i];
+		modelData.m_view = _view;
 		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-		modelData.m_mvp = s_projection * modelData.m_modelView;
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_uboModel);
+		modelData.m_mvp = _projection * modelData.m_modelView;
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+		glBindVertexArray(_mesh.vao);
 
-		glBindVertexArray(s_mesh.vao);
-		glPointSize(10);
-		glDrawElements(GL_TRIANGLES, s_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
 
 	glBindVertexArray(0);
-	
 }
-
-float radianok = 0;
 
 void updateScene(double delta)
 {
-	radianok += 0.5f;
+	radians += 0.5f;
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans2 = glm::mat4(1.0f);
 	trans = glm::rotate(trans, glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
-	s_models[0] = s_models[0] * trans;
-	trans2 = glm::rotate(trans2, glm::radians(radianok), glm::vec3(0.0f, 1.0f, 0.0f));
+	_models[0] = _models[0] * trans;
+	trans2 = glm::rotate(trans2, glm::radians(radians), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	/** Escape billentyű. */
-	if (glfwGetKey(s_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
-		glfwSetWindowShouldClose(s_window, true);
+		glfwSetWindowShouldClose(_window, true);
 	}
 
 	/** Mozgás kezelése. */
-	if (glfwGetKey(s_window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		s_eye += s_forward * s_moveSpeed * (float)delta;
+		_eye += _forward * _moveSpeed * (float)delta;
 	}
 
-	if (glfwGetKey(s_window, GLFW_KEY_S) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		s_eye -= s_forward * s_moveSpeed * (float)delta;
+		_eye -= _forward * _moveSpeed * (float)delta;
 	}
 
-	if (glfwGetKey(s_window, GLFW_KEY_A) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		s_eye += s_right * s_moveSpeed * (float)delta;
+		_eye += _right * _moveSpeed * (float)delta;
 	}
 
-	if (glfwGetKey(s_window, GLFW_KEY_D) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		s_eye -= s_right * s_moveSpeed * (float)delta;
+		_eye -= _right * _moveSpeed * (float)delta;
 	}
 
-	if (glfwGetKey(s_window, GLFW_KEY_ENTER) == GLFW_PRESS)
+	if (glfwGetKey(_window, GLFW_KEY_ENTER) == GLFW_PRESS)
 	{
-		if (!isKeyPressed) {
+		if (!isKeyPressed)
+		{
+			subdivideLoop();
 
-			subdivideButterfly();
-			
-			s_mesh.loadSubdivData();
+			_mesh.loadSubdivData();
 
-			glBindBuffer(GL_ARRAY_BUFFER, s_mesh.vbo);
-			glBufferData(GL_ARRAY_BUFFER, s_mesh.vertices.size() * sizeof(Mesh::Vertex), s_mesh.vertices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, _mesh.vbo);
+			glBufferData(GL_ARRAY_BUFFER, _mesh.vertices.size() * sizeof(Mesh::Vertex), _mesh.vertices.data(), GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_mesh.ibo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_mesh.indices.size() * sizeof(GLuint), s_mesh.indices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -360,26 +268,26 @@ void updateScene(double delta)
 		isKeyPressed = true;
 	}
 
-	if (glfwGetKey(s_window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+	if (glfwGetKey(_window, GLFW_KEY_ENTER) == GLFW_RELEASE)
 	{
 		isKeyPressed = false;
 	}
 
 	/** Forgás kezelése. */
 	double mouseX, mouseY;
-	glfwGetCursorPos(s_window, &mouseX, &mouseY);
+	glfwGetCursorPos(_window, &mouseX, &mouseY);
 
-	if (s_mouseX != -1.0)
+	if (_mouseX != -1.0)
 	{
-		float deltaX = (float)(mouseX - s_mouseX);
-		float deltaY = (float)(mouseY - s_mouseY);
+		float deltaX = (float)(mouseX - _mouseX);
+		float deltaY = (float)(mouseY - _mouseY);
 
-		s_phi += s_turnSpeed * delta * deltaY;
-		s_theta += s_turnSpeed * delta * deltaX;
+		_phi += _turnSpeed * delta * deltaY;
+		_theta += _turnSpeed * delta * deltaX;
 	}
 
-	s_mouseX = mouseX;
-	s_mouseY = mouseY;
+	_mouseX = mouseX;
+	_mouseY = mouseY;
 
 	/** Újraszámítjuk a kamera mátrixokat. */
 	computeCameraMatrices();
@@ -395,8 +303,8 @@ void glfwErrorFunc(int errorCode, const char* errorStr)
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
 	/** Eltároljuk az ablakunk méreteit. */
-	s_width = width;
-	s_height = height;
+	_width = width;
+	_height = height;
 
 	/** Frissítjük a rendereléshez használt területet. */
 	glViewport(0, 0, width, height);
@@ -409,9 +317,6 @@ void resizeCallback(GLFWwindow* window, int width, int height)
 
 int main(int argc, char** argv)
 {
-	//vector <int> valami = { 5,6,7,8 };
-	//cout << abs(valami.begin()-find(valami.begin(), valami.end(), 6));
-
 	/** Próbáljuk meg felállítani a GLFW-t. */
 	if (!glfwInit())
 	{
@@ -432,9 +337,9 @@ int main(int argc, char** argv)
 	glfwSetErrorCallback(glfwErrorFunc);
 
 	/** Próbáljuk meg létrehozni az ablakunkat. */
-	s_window = glfwCreateWindow(s_width, s_height, "Számítógépes grafika beadandó", NULL, NULL);
+	_window = glfwCreateWindow(_width, _height, "Szamitogepes grafika beadando", NULL, NULL);
 
-	if (!s_window)
+	if (!_window)
 	{
 		cerr << "Failed to create a GLFW window!" << endl;
 		glfwTerminate();
@@ -442,13 +347,13 @@ int main(int argc, char** argv)
 	}
 
 	/** Kapcsoljuk ki az egérkurzort. */
-	glfwSetInputMode(s_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	/** Callback függvények az egyéb eseményekhez. */
-	glfwSetFramebufferSizeCallback(s_window, resizeCallback);
+	glfwSetFramebufferSizeCallback(_window, resizeCallback);
 
 	/** Válasszuk ki az ablakunk OpenGL kontextusát, hogy használhassuk. */
-	glfwMakeContextCurrent(s_window);
+	glfwMakeContextCurrent(_window);
 
 	/** Inicializáljuk a GLEW-ot, hogy elérhetővé váljanak az OpenGL függvények. */
 	glewExperimental = GL_TRUE;
@@ -471,7 +376,7 @@ int main(int argc, char** argv)
 	double lastTime = glfwGetTime();
 
 	/** Fő ciklus. */
-	while (!glfwWindowShouldClose(s_window))
+	while (!glfwWindowShouldClose(_window))
 	{
 		/** Jelenlegi idő. */
 		double currentTime = glfwGetTime();
@@ -483,14 +388,14 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 
 		/** Ha elég idő eltelt, frissítünk és rajzolunk. */
-		if (deltaTime > s_updateDeltaTime)
+		if (deltaTime > _updateDeltaTime)
 		{
 			/** Jelenet frissítése (input kezelés, alkalmazáslogika). */
 			updateScene(deltaTime);
 
 			/** Jelenet kirajzolása. */
 			renderScene();
-			glfwSwapBuffers(s_window);
+			glfwSwapBuffers(_window);
 
 			/** Eltároljuk a mostani időpontot, mint a legutolsó frissítés idejét. */
 			lastTime = currentTime;

@@ -27,17 +27,19 @@ struct Mesh {
 		Face* face;
 		VertexSubdiv* vertex; //VÉGPONT
 		int v1, v2;
+		bool used = false;
+
 		bool operator==(HalfEdge b)
 		{
 			return b.v1 == this->v1 && b.v2 == this->v2;
 		}
-		bool used = false;
 	};
 
 	struct VertexSubdiv {
 		glm::vec3 position;
 		glm::vec3 normal;
 		HalfEdge* edge; //KIINDULÓ
+
 		bool operator==(VertexSubdiv b)
 		{
 			return b.position == this->position;
@@ -66,6 +68,7 @@ struct Mesh {
 	void loadSubdivData()
 	{
 		indices.clear();
+
 		for (int i = 0; i < faces.size(); i++)
 		{
 			indices.push_back(faces[i].vertices[0]);
@@ -80,6 +83,7 @@ struct Mesh {
 		}
 
 		vertices.clear();
+
 		for (int i = 0; i < verticesSubdiv.size(); i++)
 		{
 			Vertex vertex;
@@ -87,9 +91,6 @@ struct Mesh {
 			vertex.normal = verticesSubdiv[i].normal;
 			vertices.push_back(vertex);
 		}
-
-		
-		this->halfEdge.reserve(this->faces.size() * 3);
 
 		this->halfEdge.clear();
 
@@ -112,6 +113,7 @@ struct Mesh {
 			{
 				halfEdge.pair = &(*pair);
 			}
+
 			this->halfEdge.push_back(halfEdge);
 			this->verticesSubdiv[this->faces[i].vertices[0]].edge = &this->halfEdge[this->halfEdge.size() - 1];
 
@@ -179,39 +181,13 @@ struct Mesh {
 
 			this->faces[i].edge = &this->halfEdge[this->halfEdge.size() - 3];
 		}
-
-		//for (int h = 0; h < this->halfEdge.size(); h++)
-		//{
-		//	cout << this->halfEdge[h].v1 << " " << this->halfEdge[h].v2 << " " << &this->halfEdge[h] << " " << this->halfEdge[h].pair << " ";
-		//	if (this->halfEdge[h].pair != NULL)
-		//	{
-		//		cout << this->halfEdge[h].pair->v1 << " " << this->halfEdge[h].pair->v2;
-		//	}
-		//	cout << endl;
-		//}
-
-		//for (int h = 0; h < this->verticesSubdiv.size(); h++)
-		//{
-		//	cout << this->verticesSubdiv[h].position.x << " " << this->verticesSubdiv[h].position.y << " " << this->verticesSubdiv[h].position.z << " ";
-		//	cout << endl;
-		//}
-		//cout << endl; cout << endl;
-
-		//for (int h = 0; h < this->faces.size(); h++)
-		//{
-		//	cout << this->faces[h].vertices[0] << " " ;
-		//	cout << this->faces[h].vertices[1] << " " ;
-		//	cout << this->faces[h].vertices[2] << " " ;
-
-		//	cout << endl;
-		//}
-		//cout << endl; cout << endl;
-		cout << this->verticesSubdiv.size() << endl;
 	}
 };
 
 Mesh loadMesh(string fileName);
 
 void subdivideLoop();
+
 void subdivideKobbelt();
+
 void subdivideButterfly();
