@@ -188,6 +188,53 @@ Mesh loadMesh(string fileName)
 	return mesh;
 }
 
+
+Mesh loadPointCloud(string fileName)
+{
+	Mesh mesh;
+	ifstream stream(fileName);
+	string s;
+	while (!stream.eof())
+	{
+		Mesh::VertexPC temp;
+		stream >> s;
+		if (s == "0") break;
+		std::string delimiter = ",";
+		size_t pos = 0;
+		std::string token;
+		vector<float> coords;
+		while ((pos = s.find(delimiter)) != string::npos) {
+			token = s.substr(0, pos);
+			coords.push_back(atof(token.c_str()));
+			s.erase(0, pos + delimiter.length());
+		}
+		
+		temp.position = glm::vec3(coords[0], coords[1], coords[2]);
+		coords.clear();
+		mesh.verticesPC.push_back(temp);
+	}
+
+	stream.close();
+
+
+	glGenBuffers(1, &mesh.vbo);
+	glGenVertexArrays(1, &mesh.vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, mesh.verticesPC.size() * sizeof(Mesh::Vertex), mesh.verticesPC.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(mesh.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const void*)0);
+	glBindVertexArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	return mesh;
+}
+
 void saveMesh(string fileName)
 {
 	ofstream stream(fileName+".obj");

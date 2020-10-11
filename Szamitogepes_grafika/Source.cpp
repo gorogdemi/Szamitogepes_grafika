@@ -33,7 +33,7 @@ struct UniformDataModel
 
 array<glm::mat4, 1> _models =
 {
-	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(1.0f)),
+	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f)),
 };
 
 static GLuint _uboModel = 0, _uboMaterial = 0, _uboLight = 0;
@@ -90,7 +90,8 @@ void initScene()
 	boundingbox = loadProgram("bounds");
 
 	/** Betöltjük a mesht. */
-	_mesh = loadMesh("test3.obj");
+	//_mesh = loadMesh("test3.obj");
+	_mesh = loadPointCloud("PointBunny.csv");
 	cout << "Loading done." << endl;
 
 	glGenBuffers(1, &_uboModel);
@@ -102,9 +103,9 @@ void initScene()
 	glBufferData(GL_ARRAY_BUFFER, _mesh.vertices.size() * sizeof(Mesh::Vertex), _mesh.vertices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _mesh.indices.size() * sizeof(GLuint), _mesh.indices.data(), GL_STATIC_DRAW);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	/** Konfiguráljuk a VAO-t. */
 	glBindVertexArray(vao);
@@ -113,7 +114,7 @@ void initScene()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBindVertexArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -145,7 +146,8 @@ void cleanUpScene()
 
 void renderScene()
 {
-	glClearColor(0.2f, 0.6f, 0.3f, 1.0f);
+	//glClearColor(0.2f, 0.6f, 0.3f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -153,29 +155,32 @@ void renderScene()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glUseProgram(_program);
-
+	glUseProgram(boundingbox);
 	for (size_t i = 0; i < _models.size(); ++i)
 	{
-		UniformDataModel modelData;
-		modelData.m_modelView = _view * _models[i];
-		modelData.m_view = _view;
-		modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
-		modelData.m_mvp = _projection * modelData.m_modelView;
-		modelData.m_rotate = trans2;
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
 		glBindVertexArray(_mesh.vao);
-		glPointSize(10);
-		glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+
+		glLineWidth(4);
+		glPointSize(6);
+
+		for (size_t i = 0; i < _models.size(); ++i)
+		{
+			glm::mat4 mvp = _projection * _view * _models[i];
+			glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+			glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+			glUniform3fv(1, 1, glm::value_ptr(boundsColor));
+
+			glDrawArrays(GL_POINTS, 0, _mesh.verticesPC.size());
+		}
+		glBindVertexArray(0);
 	}
 
 	glBindVertexArray(0);
 
 	//===========================================================================
 
-	if (displayMesh)
+	/*if (displayMesh)
 	{
 		glUseProgram(boundingbox);
 		glBindVertexArray(_mesh.vao);
@@ -221,7 +226,7 @@ void renderScene()
 			glDrawElements(GL_TRIANGLES, _mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 		}
 		glBindVertexArray(0);
-	}
+	}*/
 }
 
 void updateScene(double delta)

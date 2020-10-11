@@ -17,6 +17,12 @@ struct Mesh {
 		glm::vec3 normal;
 	};
 
+	struct VertexPC {
+		glm::vec3 position;
+		glm::vec3 normal;
+	};
+
+
 	struct VertexSubdiv;
 	struct Face;
 	struct HalfEdge;
@@ -60,6 +66,7 @@ struct Mesh {
 	vector<GLuint> indices;
 
 	vector<Vertex> vertices;
+	vector<VertexPC> verticesPC;
 
 	vector<VertexSubdiv> verticesSubdiv;
 	vector<Face> faces;
@@ -185,6 +192,8 @@ struct Mesh {
 };
 
 Mesh loadMesh(string fileName);
+
+Mesh loadPointCloud(string fileName);
 
 void saveMesh(string fileName);
 
