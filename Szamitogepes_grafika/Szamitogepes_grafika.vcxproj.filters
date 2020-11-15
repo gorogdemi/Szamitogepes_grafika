@@ -39,6 +39,9 @@
     <ClCompile Include="Subdiv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Morph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.hpp">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Shader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Morph.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

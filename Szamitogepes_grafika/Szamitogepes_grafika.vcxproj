@@ -148,12 +148,14 @@
     <ClCompile Include="..\libs\imgui\src\imgui_demo.cpp" />
     <ClCompile Include="..\libs\imgui\src\imgui_draw.cpp" />
     <ClCompile Include="..\libs\stb\src\stb_image.cpp" />
+    <ClCompile Include="Morph.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Subdiv.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Morph.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="Subdiv.hpp" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 
 #include "Shader.hpp"
 #include "Subdiv.hpp"
+#include "Morph.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -18,6 +19,7 @@ bool isKeyPressedL = false;
 bool isKeyPressedB = false;
 bool isKeyPressedM = false;
 bool isKeyPressedF = false;
+bool isKeyPressedP = false;
 bool displayMesh = false;
 
 glm::mat4 trans2;
@@ -31,9 +33,10 @@ struct UniformDataModel
 	glm::mat4 m_rotate;
 };
 
-array<glm::mat4, 1> _models =
+array<glm::mat4, 2> _models =
 {
 	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f)),
+	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f))* glm::scale(glm::vec3(10.0f))
 };
 
 static GLuint _uboModel = 0, _uboMaterial = 0, _uboLight = 0;
@@ -44,7 +47,9 @@ static GLFWwindow* _window = NULL;
 /** Frissítések közötti minimális idő. */
 static double _updateDeltaTime = 1.0 / 60.0;
 
-extern Mesh _mesh, sphere;
+extern Mesh _mesh;
+
+Mesh _sphereMesh;
 
 static GLuint _program = 0;
 static GLuint boundingbox = 2;
@@ -83,6 +88,7 @@ void computeCameraMatrices()
 
 void initScene()
 {
+	srand(time(NULL));
 	computeCameraMatrices();
 
 	/** Betöltjük a rajzoláshoz használandó shader programot. */
@@ -92,7 +98,7 @@ void initScene()
 	/** Betöltjük a mesht. */
 	//_mesh = loadMesh("test3.obj");
 	_mesh = loadPointCloud("PointBunny.csv");
-	sphere = loadMesh("sphere.obj");
+	_sphereMesh = loadMesh("sphere.obj");
 	cout << "Loading done." << endl;
 
 	glGenBuffers(1, &_uboModel);
@@ -157,27 +163,41 @@ void renderScene()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glUseProgram(boundingbox);
-	for (size_t i = 0; i < _models.size(); ++i)
-	{
 
 		glBindVertexArray(_mesh.vao);
 
-		glLineWidth(4);
-		glPointSize(6);
 
-		for (size_t i = 0; i < _models.size(); ++i)
-		{
-			glm::mat4 mvp = _projection * _view * _models[i];
+
+			glm::mat4 mvp = _projection * _view * _models[0];
 			glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
 			glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 			glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
 			glDrawArrays(GL_POINTS, 0, _mesh.verticesPC.size());
-		}
-		glBindVertexArray(0);
-	}
+		
+
 
 	glBindVertexArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glUseProgram(_program);
+
+	UniformDataModel modelData;
+	modelData.m_modelView = _view * _models[1];
+	modelData.m_view = _view;
+	modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+	modelData.m_mvp = _projection * modelData.m_modelView;
+	modelData.m_rotate = trans2;
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+
+	glBindVertexArray(_sphereMesh.vao);
+	glPointSize(5);
+	glDrawElements(GL_TRIANGLES, _sphereMesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+
+	glBindVertexArray(0);
+
 
 	//===========================================================================
 
@@ -235,8 +255,9 @@ void updateScene(double delta)
 	radians += 0.5f;
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans2 = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
+	trans = glm::rotate(trans, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	_models[0] = _models[0] * trans;
+	_models[1] = _models[1] * trans;
 	trans2 = glm::rotate(trans2, glm::radians(radians), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	/** Escape billentyű. */
@@ -281,6 +302,28 @@ void updateScene(double delta)
 		{
 			saveMesh("finomitott");
 			isKeyPressedF = true;
+		}
+	}
+
+	if (glfwGetKey(_window, GLFW_KEY_P) == GLFW_PRESS)
+	{
+		//if (!isKeyPressedP)
+		{
+			morphByStep(_mesh, _sphereMesh);
+
+			_sphereMesh.loadSubdivData();
+
+			glBindBuffer(GL_ARRAY_BUFFER, _sphereMesh.vbo);
+			glBufferData(GL_ARRAY_BUFFER, _sphereMesh.vertices.size() * sizeof(Mesh::Vertex), _sphereMesh.vertices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphereMesh.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _sphereMesh.indices.size() * sizeof(GLuint), _sphereMesh.indices.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			isKeyPressedP = true;
 		}
 	}
 
@@ -373,6 +416,10 @@ void updateScene(double delta)
 	if (glfwGetKey(_window, GLFW_KEY_F) == GLFW_RELEASE && isKeyPressedF)
 	{
 		isKeyPressedF = false;
+	}
+	if (glfwGetKey(_window, GLFW_KEY_P) == GLFW_RELEASE && isKeyPressedP)
+	{
+		isKeyPressedP = false;
 	}
 
 	/** Forgás kezelése. */
