@@ -44,7 +44,7 @@ static GLFWwindow* _window = NULL;
 /** Frissítések közötti minimális idő. */
 static double _updateDeltaTime = 1.0 / 60.0;
 
-extern Mesh _mesh;
+extern Mesh _mesh, sphere;
 
 static GLuint _program = 0;
 static GLuint boundingbox = 2;
@@ -92,6 +92,7 @@ void initScene()
 	/** Betöltjük a mesht. */
 	//_mesh = loadMesh("test3.obj");
 	_mesh = loadPointCloud("PointBunny.csv");
+	sphere = loadMesh("sphere.obj");
 	cout << "Loading done." << endl;
 
 	glGenBuffers(1, &_uboModel);
