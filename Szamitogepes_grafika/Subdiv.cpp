@@ -73,6 +73,12 @@ Mesh loadMesh(string fileName)
 	}
 
 	mesh.halfEdge.reserve(1000000);
+	mesh.vertexColor.reserve(1000000);
+
+	for (int i = 0; i < mesh.vertices.size(); i++)
+	{
+		mesh.vertexColor.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+	}
 
 	for (int i = 0; i < mesh.faces.size(); i++)
 	{
@@ -163,6 +169,7 @@ Mesh loadMesh(string fileName)
 
 	glGenBuffers(1, &mesh.vbo);
 	glGenBuffers(1, &mesh.ibo);
+	glGenBuffers(1, &mesh.colorVbo);
 	glGenVertexArrays(1, &mesh.vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
@@ -178,7 +185,9 @@ Mesh loadMesh(string fileName)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
 	glBindVertexArray(0);
 
@@ -187,7 +196,6 @@ Mesh loadMesh(string fileName)
 
 	return mesh;
 }
-
 
 Mesh loadPointCloud(string fileName)
 {
@@ -208,14 +216,13 @@ Mesh loadPointCloud(string fileName)
 			coords.push_back(atof(token.c_str()));
 			s.erase(0, pos + delimiter.length());
 		}
-		
+
 		temp.position = glm::vec3(coords[0], coords[1], coords[2]);
 		coords.clear();
 		mesh.verticesPC.push_back(temp);
 	}
 
 	stream.close();
-
 
 	glGenBuffers(1, &mesh.vbo);
 	glGenVertexArrays(1, &mesh.vao);
@@ -237,8 +244,8 @@ Mesh loadPointCloud(string fileName)
 
 void saveMesh(string fileName)
 {
-	ofstream stream(fileName+".obj");
-	
+	ofstream stream(fileName + ".obj");
+
 	stream << "o finom" << endl << endl;
 
 	for (int i = 0; i < _mesh.vertices.size(); i++)
@@ -247,12 +254,12 @@ void saveMesh(string fileName)
 	}
 
 	stream << endl;
-	
+
 	for (int i = 0; i < _mesh.faces.size(); i++)
 	{
-		stream << "f " << _mesh.faces[i].vertices[0]+1 << " " << _mesh.faces[i].vertices[1]+1 << " " << _mesh.faces[i].vertices[2]+1 << endl;
+		stream << "f " << _mesh.faces[i].vertices[0] + 1 << " " << _mesh.faces[i].vertices[1] + 1 << " " << _mesh.faces[i].vertices[2] + 1 << endl;
 	}
-	
+
 	stream << endl;
 
 	stream.close();

@@ -15,13 +15,13 @@ struct Mesh {
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec3 normal;
+		glm::vec3 color;
 	};
 
 	struct VertexPC {
 		glm::vec3 position;
 		glm::vec3 normal;
 	};
-
 
 	struct VertexSubdiv;
 	struct Face;
@@ -58,7 +58,9 @@ struct Mesh {
 		int centerPoint;
 	};
 
-	GLuint vbo, vao, ibo;
+	GLuint vbo, vao, ibo, colorVbo;
+
+	vector<glm::vec3> vertexColor;
 
 	vector<glm::vec3> normals;
 	vector<GLuint> Normalindices;

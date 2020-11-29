@@ -36,7 +36,7 @@ struct UniformDataModel
 array<glm::mat4, 2> _models =
 {
 	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f)),
-	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f))* glm::scale(glm::vec3(10.0f))
+	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f))
 };
 
 static GLuint _uboModel = 0, _uboMaterial = 0, _uboLight = 0;
@@ -121,7 +121,7 @@ void initScene()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec3), (const void*)(sizeof(glm::vec3)));
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBindVertexArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -164,18 +164,14 @@ void renderScene()
 
 	glUseProgram(boundingbox);
 
-		glBindVertexArray(_mesh.vao);
+	glBindVertexArray(_mesh.vao);
 
+	glm::mat4 mvp = _projection * _view * _models[0];
+	glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+	glUniform3fv(1, 1, glm::value_ptr(boundsColor));
 
-
-			glm::mat4 mvp = _projection * _view * _models[0];
-			glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
-			glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-			glUniform3fv(1, 1, glm::value_ptr(boundsColor));
-
-			glDrawArrays(GL_POINTS, 0, _mesh.verticesPC.size());
-		
-
+	glDrawArrays(GL_POINTS, 0, _mesh.verticesPC.size());
 
 	glBindVertexArray(0);
 
@@ -192,12 +188,38 @@ void renderScene()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
+	glm::vec3 color = glm::vec3(0.2, 0.2, 1.0);
+	glUniform3fv(2, 1, glm::value_ptr(color));
+
 	glBindVertexArray(_sphereMesh.vao);
 	glPointSize(5);
 	glDrawElements(GL_TRIANGLES, _sphereMesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 
 	glBindVertexArray(0);
 
+	//******
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	glUseProgram(boundingbox);
+
+	modelData.m_modelView = _view * _models[1];
+	modelData.m_view = _view;
+	modelData.m_normal = glm::inverseTranspose(modelData.m_modelView);
+	modelData.m_mvp = _projection * modelData.m_modelView;
+	modelData.m_rotate = trans2;
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, _uboModel);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
+
+	color = glm::vec3(0.2, 2.0, 0.2);
+	glUniform3fv(1, 1, glm::value_ptr(color));
+
+	glBindVertexArray(_sphereMesh.vao);
+	glPointSize(5);
+	glLineWidth(3);
+	glDrawElements(GL_TRIANGLES, _sphereMesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+
+	glBindVertexArray(0);
 
 	//===========================================================================
 
