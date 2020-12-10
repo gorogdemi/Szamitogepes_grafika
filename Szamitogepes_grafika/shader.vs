@@ -13,11 +13,15 @@ layout (std140, binding = 0) uniform ModelData
 /** Bemeneti attribútumok. */
 layout(location = 0) in vec3 vPos;
 layout(location = 1) in vec3 vNormal;
+layout(location = 2) in vec3 vColor;
+
 
 /** Kimeneti attribútumok. */
 out vec3 vPosVS;
 out vec3 vNormalVS;
 out vec3 vNormalVS2;
+out vec3 vColorVS;
+
 
 void main()
 {
@@ -27,4 +31,5 @@ void main()
 	vNormalVS2 =vNormal;
 	/** Kiírjuk a pozíciót. */
 	gl_Position = sModelData.mMVP * vec4(vPos, 1);
+	vColorVS=vColor;
 }

@@ -189,7 +189,7 @@ void renderScene()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
 	glm::vec3 color = glm::vec3(0.2, 0.2, 1.0);
-	glUniform3fv(2, 1, glm::value_ptr(color));
+	glUniform3fv(3, 1, glm::value_ptr(color));
 
 	glBindVertexArray(_sphereMesh.vao);
 	glPointSize(5);

@@ -44,6 +44,7 @@ struct Mesh {
 	struct VertexSubdiv {
 		glm::vec3 position;
 		glm::vec3 normal;
+		glm::vec3 color;
 		HalfEdge* edge; //KIINDULÓ
 
 		bool operator==(VertexSubdiv b)
@@ -76,6 +77,8 @@ struct Mesh {
 
 	void loadSubdivData()
 	{
+
+
 		indices.clear();
 
 		for (int i = 0; i < faces.size(); i++)
@@ -98,6 +101,7 @@ struct Mesh {
 			Vertex vertex;
 			vertex.position = verticesSubdiv[i].position;
 			vertex.normal = verticesSubdiv[i].normal;
+			vertex.color = verticesSubdiv[i].color;
 			vertices.push_back(vertex);
 		}
 
