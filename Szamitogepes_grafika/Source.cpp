@@ -125,7 +125,7 @@ void initScene()
 	glBindVertexArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
 void cleanUpScene()
@@ -170,7 +170,7 @@ void renderScene()
 	glm::vec3 boundsColor = glm::vec3(1.0f, 0.0f, 0.0f);
 	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 	glUniform3fv(1, 1, glm::value_ptr(boundsColor));
-
+	glPointSize(3);
 	glDrawArrays(GL_POINTS, 0, _mesh.verticesPC.size());
 
 	glBindVertexArray(0);
@@ -189,7 +189,7 @@ void renderScene()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformDataModel), &modelData, GL_STREAM_DRAW);
 
 	glm::vec3 color = glm::vec3(0.2, 0.2, 1.0);
-	glUniform3fv(2, 1, glm::value_ptr(color));
+	glUniform3fv(3, 1, glm::value_ptr(color));
 
 	glBindVertexArray(_sphereMesh.vao);
 	glPointSize(5);
