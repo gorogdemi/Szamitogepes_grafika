@@ -50,6 +50,7 @@ void morphByStep(Mesh& pointCloud, Mesh& base)
 	}
 
 	vector <float> areas;
+	vector <float> areasIndex;
 
 
 
@@ -74,6 +75,7 @@ void morphByStep(Mesh& pointCloud, Mesh& base)
 			float s = (a + b + c) / 2;
 			float area = sqrt((s * (s - a) * (s - b) * (s - c))); //Heron képletből jön
 			areas.push_back(area);
+			areasIndex.push_back(i);
 			
 		}
 		
@@ -83,30 +85,185 @@ void morphByStep(Mesh& pointCloud, Mesh& base)
 	for (size_t i = 0; i < areas.size(); i++)
 	{
 		if (areas[i] > 0.0001) {
+			int j = areasIndex[i];
 			cout << "SUBDIVIDE" << endl;
-			base.verticesSubdiv[base.faces[i].vertices[0]].color = glm::vec3(0.0, 1.0, 0.0);
-			base.verticesSubdiv[base.faces[i].vertices[1]].color = glm::vec3(0.0, 1.0, 0.0);
-			base.verticesSubdiv[base.faces[i].vertices[2]].color = glm::vec3(0.0, 1.0, 0.0);
-
-			Mesh::VertexSubdiv ujVertex;
-			ujVertex.color = glm::vec3(0.0, 0.0, 0.0);
-			ujVertex.position = (base.verticesSubdiv[base.faces[i].vertices[0]].position + base.verticesSubdiv[base.faces[i].vertices[1]].position + base.verticesSubdiv[base.faces[i].vertices[0]].position) / glm::vec3(3.0);
-			base.verticesSubdiv.push_back(ujVertex);
-			Mesh::Face f1;
-			f1.vertices[0]= base.faces[i].vertices[0];
-			f1.vertices[1]= base.faces[i].vertices[1];
-			f1.vertices[2]= base.verticesSubdiv.size() - 1;
-			base.faces.push_back(f1);
-			f1.vertices[0] = base.faces[i].vertices[1];
-			f1.vertices[1] = base.faces[i].vertices[2];
-			f1.vertices[2] = base.verticesSubdiv.size() - 1;
-			base.faces.push_back(f1);
-			f1.vertices[0] = base.faces[i].vertices[2];
-			f1.vertices[1] = base.faces[i].vertices[0];
-			f1.vertices[2] = base.verticesSubdiv.size() - 1;
-			base.faces.push_back(f1);
+			base.verticesSubdiv[base.faces[j].vertices[0]].color = glm::vec3(0.0, 0.4, 0.0);
+			base.verticesSubdiv[base.faces[j].vertices[1]].color = glm::vec3(0.0, 0.4, 0.0);
+			base.verticesSubdiv[base.faces[j].vertices[2]].color = glm::vec3(0.0, 0.4, 0.0);
 			
+			Mesh::VertexSubdiv v0;
+			Mesh::VertexSubdiv v1;
+			Mesh::VertexSubdiv v2;
+			
+			v0.position = (base.verticesSubdiv[base.faces[j].vertices[0]].position + base.verticesSubdiv[base.faces[j].vertices[1]].position) / 2.0f;
+			v1.position = (base.verticesSubdiv[base.faces[j].vertices[1]].position + base.verticesSubdiv[base.faces[j].vertices[2]].position) / 2.0f;
+			v2.position = (base.verticesSubdiv[base.faces[j].vertices[2]].position + base.verticesSubdiv[base.faces[j].vertices[0]].position) / 2.0f;
+			
+			v0.color= glm::vec3(0.0, 0.4, 0.0);
+			v1.color= glm::vec3(0.0, 0.4, 0.0);
+			v2.color= glm::vec3(0.0, 0.4, 0.0);
+
+			base.verticesSubdiv.push_back(v0);
+			base.verticesSubdiv.push_back(v1);
+			base.verticesSubdiv.push_back(v2);
+
+			Mesh::Face f1;
+
+			//=========================================
+			//BELSŐ OLDALAK
+			//=========================================
+
+			f1.vertices[0] = base.faces[j].vertices[0];
+			f1.vertices[1] = base.verticesSubdiv.size() - 3;
+			f1.vertices[2] = base.verticesSubdiv.size() - 1;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.faces[j].vertices[1];
+			f1.vertices[1] = base.verticesSubdiv.size() - 2;
+			f1.vertices[2] = base.verticesSubdiv.size() - 3;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.faces[j].vertices[2];
+			f1.vertices[1] = base.verticesSubdiv.size() - 3;
+			f1.vertices[2] = base.verticesSubdiv.size() - 2;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.verticesSubdiv.size() - 3;
+			f1.vertices[1] = base.verticesSubdiv.size() - 2;
+			f1.vertices[2] = base.verticesSubdiv.size() - 1;
+			base.faces.push_back(f1);
+
+			//=========================================
+			//KÜLSŐ OLDALAK
+			//=========================================
+
+			f1.vertices[0] = base.faces[j].vertices[0];
+			f1.vertices[1] = base.verticesSubdiv[base.faces[j].vertices[0]].edge->pair->next->v2;
+			f1.vertices[2] = base.verticesSubdiv.size() - 3;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.verticesSubdiv[base.faces[j].vertices[0]].edge->pair->next->v2; 
+			f1.vertices[1] = base.faces[j].vertices[1];
+			f1.vertices[2] = base.verticesSubdiv.size() - 3;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.faces[j].vertices[1];
+			f1.vertices[1] = base.verticesSubdiv[base.faces[j].vertices[1]].edge->pair->next->v2;
+			f1.vertices[2] = base.verticesSubdiv.size() - 2;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.verticesSubdiv[base.faces[j].vertices[1]].edge->pair->next->v2; 
+			f1.vertices[1] = base.faces[j].vertices[2];
+			f1.vertices[2] = base.verticesSubdiv.size() - 2;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.faces[j].vertices[2];
+			f1.vertices[1] = base.verticesSubdiv[base.faces[j].vertices[2]].edge->pair->next->v2;
+			f1.vertices[2] = base.verticesSubdiv.size() - 1;
+			base.faces.push_back(f1);
+
+			f1.vertices[0] = base.verticesSubdiv[base.faces[j].vertices[2]].edge->pair->next->v2; 
+			f1.vertices[1] = base.faces[j].vertices[0];
+			f1.vertices[2] = base.verticesSubdiv.size() - 1;
+			base.faces.push_back(f1);
+
+
+			//==================================================
+			//RECALCULATING HALFEDGES
+			//==================================================
+
+			base.halfEdge.clear();
+
+			for (int i = 0; i < base.faces.size(); i++)
+			{
+				Mesh::HalfEdge halfEdge;
+				halfEdge.v1 = base.faces[i].vertices[0];
+				halfEdge.v2 = base.faces[i].vertices[1];
+				halfEdge.vertex = &base.verticesSubdiv[base.faces[i].vertices[1]];
+				halfEdge.face = &base.faces[i];
+
+				Mesh::HalfEdge halfEdge2find;
+				halfEdge2find.v1 = base.faces[i].vertices[1];
+				halfEdge2find.v2 = base.faces[i].vertices[0];
+				halfEdge2find.pair = NULL;
+
+				vector<Mesh::HalfEdge>::iterator pair = find(base.halfEdge.begin(), base.halfEdge.end(), halfEdge2find);
+
+				if (pair != base.halfEdge.end())
+				{
+					halfEdge.pair = &(*pair);
+				}
+
+				base.halfEdge.push_back(halfEdge);
+				base.verticesSubdiv[base.faces[i].vertices[0]].edge = &base.halfEdge[base.halfEdge.size() - 1];
+
+				//============================================================================================
+
+				halfEdge.v1 = base.faces[i].vertices[1];
+				halfEdge.v2 = base.faces[i].vertices[2];
+				halfEdge.vertex = &base.verticesSubdiv[base.faces[i].vertices[2]];
+				halfEdge.face = &base.faces[i];
+				halfEdge.pair = NULL;
+
+				halfEdge2find.v1 = base.faces[i].vertices[2];
+				halfEdge2find.v2 = base.faces[i].vertices[1];
+				halfEdge2find.pair = NULL;
+
+				pair = find(base.halfEdge.begin(), base.halfEdge.end(), halfEdge2find);
+
+				if (pair != base.halfEdge.end())
+				{
+					halfEdge.pair = &(*pair);
+				}
+
+				base.halfEdge.push_back(halfEdge);
+				base.verticesSubdiv[base.faces[i].vertices[1]].edge = &base.halfEdge[base.halfEdge.size() - 1];
+
+				//============================================================================================
+
+				halfEdge.v1 = base.faces[i].vertices[2];
+				halfEdge.v2 = base.faces[i].vertices[0];
+				halfEdge.vertex = &base.verticesSubdiv[base.faces[i].vertices[0]];
+				halfEdge.face = &base.faces[i];
+				halfEdge.pair = NULL;
+				halfEdge2find.v1 = base.faces[i].vertices[0];
+				halfEdge2find.v2 = base.faces[i].vertices[2];
+				halfEdge2find.pair = NULL;
+
+				pair = find(base.halfEdge.begin(), base.halfEdge.end(), halfEdge2find);
+
+				if (pair != base.halfEdge.end())
+				{
+					halfEdge.pair = &(*pair);
+				}
+
+				base.halfEdge.push_back(halfEdge);
+				base.verticesSubdiv[base.faces[i].vertices[2]].edge = &base.halfEdge[base.halfEdge.size() - 1];
+
+				base.halfEdge[base.halfEdge.size() - 3].next = &base.halfEdge[base.halfEdge.size() - 2];
+				base.halfEdge[base.halfEdge.size() - 2].next = &base.halfEdge[base.halfEdge.size() - 1];
+				base.halfEdge[base.halfEdge.size() - 1].next = &base.halfEdge[base.halfEdge.size() - 3];
+
+				if (base.halfEdge[base.halfEdge.size() - 3].pair != NULL)
+				{
+					base.halfEdge[base.halfEdge.size() - 3].pair->pair = &base.halfEdge[base.halfEdge.size() - 3];
+				}
+
+				if (base.halfEdge[base.halfEdge.size() - 2].pair != NULL)
+				{
+					base.halfEdge[base.halfEdge.size() - 2].pair->pair = &base.halfEdge[base.halfEdge.size() - 2];
+				}
+
+				if (base.halfEdge[base.halfEdge.size() - 1].pair != NULL)
+				{
+					base.halfEdge[base.halfEdge.size() - 1].pair->pair = &base.halfEdge[base.halfEdge.size() - 1];
+				}
+
+				base.faces[i].edge = &base.halfEdge[base.halfEdge.size() - 3];
+			}
 		}
+
+			
 	}
 
 	
