@@ -36,7 +36,7 @@ struct UniformDataModel
 array<glm::mat4, 2> _models =
 {
 	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f)),
-	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(10.0f))
+	glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(glm::vec3(1.0f))
 };
 
 static GLuint _uboModel = 0, _uboMaterial = 0, _uboLight = 0;
@@ -98,7 +98,7 @@ void initScene()
 	/** Betöltjük a mesht. */
 	//_mesh = loadMesh("test3.obj");
 	_mesh = loadPointCloud("PointBunny.csv");
-	_sphereMesh = loadMesh("sphere.obj");
+	_sphereMesh = loadMesh("baseMorph.obj");
 	cout << "Loading done." << endl;
 
 	glGenBuffers(1, &_uboModel);

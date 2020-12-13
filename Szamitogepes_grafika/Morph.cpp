@@ -172,7 +172,7 @@ void morphByStep(Mesh& pointCloud, Mesh& base)
 			//RECALCULATING HALFEDGES
 			//==================================================
 
-			base.halfEdge.clear();
+		//	base.halfEdge.clear();
 
 			for (int i = 0; i < base.faces.size(); i++)
 			{
